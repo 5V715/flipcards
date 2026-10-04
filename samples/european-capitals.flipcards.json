@@ -1,0 +1,233 @@
+{
+  "format": "flipcards-stack",
+  "version": 1,
+  "stack": {
+    "id": "sample-european-capitals",
+    "name": "European capitals",
+    "languages": [
+      "en",
+      "de"
+    ],
+    "cards": [
+      {
+        "id": "card-at",
+        "front": {
+          "imageId": "flag-at"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Vienna",
+              "de": "Wien"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-de",
+        "front": {
+          "imageId": "flag-de"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Berlin",
+              "de": "Berlin"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-fr",
+        "front": {
+          "imageId": "flag-fr"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Paris",
+              "de": "Paris"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-it",
+        "front": {
+          "imageId": "flag-it"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Rome",
+              "de": "Rom"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-nl",
+        "front": {
+          "imageId": "flag-nl"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Amsterdam",
+              "de": "Amsterdam"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-pl",
+        "front": {
+          "imageId": "flag-pl"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Warsaw",
+              "de": "Warschau"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-ua",
+        "front": {
+          "imageId": "flag-ua"
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Kyiv",
+              "de": "Kiew"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-t0",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Spain",
+              "de": "Spanien"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Madrid",
+              "de": "Madrid"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-t1",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Portugal",
+              "de": "Portugal"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Lisbon",
+              "de": "Lissabon"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-t2",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Greece",
+              "de": "Griechenland"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Athens",
+              "de": "Athen"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-t3",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Czechia",
+              "de": "Tschechien"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Prague",
+              "de": "Prag"
+            }
+          }
+        }
+      },
+      {
+        "id": "card-t4",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Denmark",
+              "de": "Dänemark"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "Copenhagen",
+              "de": "Kopenhagen"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "images": {
+    "flag-at": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjYwMCIgaGVpZ2h0PSIxMzQiIGZpbGw9IiNjODEwMmUiLz48cmVjdCB4PSIwIiB5PSIxMzMiIHdpZHRoPSI2MDAiIGhlaWdodD0iMTM0IiBmaWxsPSIjZmZmZmZmIi8+PHJlY3QgeD0iMCIgeT0iMjY2IiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjEzNCIgZmlsbD0iI2M4MTAyZSIvPjwvc3ZnPg==",
+    "flag-de": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjYwMCIgaGVpZ2h0PSIxMzQiIGZpbGw9IiMwMDAwMDAiLz48cmVjdCB4PSIwIiB5PSIxMzMiIHdpZHRoPSI2MDAiIGhlaWdodD0iMTM0IiBmaWxsPSIjZGQwMDAwIi8+PHJlY3QgeD0iMCIgeT0iMjY2IiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjEzNCIgZmlsbD0iI2ZmY2UwMCIvPjwvc3ZnPg==",
+    "flag-fr": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjIwMSIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwMDU1YTQiLz48cmVjdCB4PSIyMDAiIHk9IjAiIHdpZHRoPSIyMDEiIGhlaWdodD0iNDAwIiBmaWxsPSIjZmZmZmZmIi8+PHJlY3QgeD0iNDAwIiB5PSIwIiB3aWR0aD0iMjAxIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VmNDEzNSIvPjwvc3ZnPg==",
+    "flag-it": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjIwMSIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwMDkyNDYiLz48cmVjdCB4PSIyMDAiIHk9IjAiIHdpZHRoPSIyMDEiIGhlaWdodD0iNDAwIiBmaWxsPSIjZmZmZmZmIi8+PHJlY3QgeD0iNDAwIiB5PSIwIiB3aWR0aD0iMjAxIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2NlMmIzNyIvPjwvc3ZnPg==",
+    "flag-nl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjYwMCIgaGVpZ2h0PSIxMzQiIGZpbGw9IiNhZTFjMjgiLz48cmVjdCB4PSIwIiB5PSIxMzMiIHdpZHRoPSI2MDAiIGhlaWdodD0iMTM0IiBmaWxsPSIjZmZmZmZmIi8+PHJlY3QgeD0iMCIgeT0iMjY2IiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjEzNCIgZmlsbD0iIzIxNDY4YiIvPjwvc3ZnPg==",
+    "flag-pl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjYwMCIgaGVpZ2h0PSIyMDEiIGZpbGw9IiNmZmZmZmYiLz48cmVjdCB4PSIwIiB5PSIyMDAiIHdpZHRoPSI2MDAiIGhlaWdodD0iMjAxIiBmaWxsPSIjZGMxNDNjIi8+PC9zdmc+",
+    "flag-ua": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjYwMCIgaGVpZ2h0PSIyMDEiIGZpbGw9IiMwMDU3YjciLz48cmVjdCB4PSIwIiB5PSIyMDAiIHdpZHRoPSI2MDAiIGhlaWdodD0iMjAxIiBmaWxsPSIjZmZkNzAwIi8+PC9zdmc+"
+  }
+}

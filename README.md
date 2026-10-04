@@ -21,6 +21,13 @@ The tests run in a real browser through Karma: headless Firefox by default, or h
 Chrome with `-PtestBrowser=chrome`. For Firefox the build points `TMPDIR` at
 `build/firefox-tmp`, because a Firefox installed as a snap cannot read `/tmp`.
 
+## Sample stacks
+
+`samples/` has two stacks to import, both with English and German:
+
+- `european-capitals.flipcards.json`: flags and country names, answer with the capital
+- `spanish-basic-words.flipcards.json`: 30 everyday words, answer in Spanish
+
 ## How it is built
 
 - `src/commonMain` holds everything that needs no browser: the model, the play logic, the

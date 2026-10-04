@@ -1,0 +1,555 @@
+{
+  "format": "flipcards-stack",
+  "version": 1,
+  "stack": {
+    "id": "sample-spanish-basic-words",
+    "name": "Spanish basic words",
+    "languages": [
+      "en",
+      "de"
+    ],
+    "cards": [
+      {
+        "id": "word-01",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "hello",
+              "de": "hallo"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "hola"
+          }
+        }
+      },
+      {
+        "id": "word-02",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "goodbye",
+              "de": "tschüss"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "adiós"
+          }
+        }
+      },
+      {
+        "id": "word-03",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "please",
+              "de": "bitte"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "por favor"
+          }
+        }
+      },
+      {
+        "id": "word-04",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "thank you",
+              "de": "danke"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "gracias"
+          }
+        }
+      },
+      {
+        "id": "word-05",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "yes",
+              "de": "ja"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "sí"
+          }
+        }
+      },
+      {
+        "id": "word-06",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "no",
+              "de": "nein"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "no"
+          }
+        }
+      },
+      {
+        "id": "word-07",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "house",
+              "de": "Haus"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "casa"
+          }
+        }
+      },
+      {
+        "id": "word-08",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "water",
+              "de": "Wasser"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "agua"
+          }
+        }
+      },
+      {
+        "id": "word-09",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "bread",
+              "de": "Brot"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "pan"
+          }
+        }
+      },
+      {
+        "id": "word-10",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "milk",
+              "de": "Milch"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "leche"
+          }
+        }
+      },
+      {
+        "id": "word-11",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "apple",
+              "de": "Apfel"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "manzana"
+          }
+        }
+      },
+      {
+        "id": "word-12",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "dog",
+              "de": "Hund"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "perro"
+          }
+        }
+      },
+      {
+        "id": "word-13",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "cat",
+              "de": "Katze"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "gato"
+          }
+        }
+      },
+      {
+        "id": "word-14",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "book",
+              "de": "Buch"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "libro"
+          }
+        }
+      },
+      {
+        "id": "word-15",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "friend",
+              "de": "Freund"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "amigo"
+          }
+        }
+      },
+      {
+        "id": "word-16",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "family",
+              "de": "Familie"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "familia"
+          }
+        }
+      },
+      {
+        "id": "word-17",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "day",
+              "de": "Tag"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "día"
+          }
+        }
+      },
+      {
+        "id": "word-18",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "night",
+              "de": "Nacht"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "noche"
+          }
+        }
+      },
+      {
+        "id": "word-19",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "sun",
+              "de": "Sonne"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "sol"
+          }
+        }
+      },
+      {
+        "id": "word-20",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "moon",
+              "de": "Mond"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "luna"
+          }
+        }
+      },
+      {
+        "id": "word-21",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "one",
+              "de": "eins"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "uno"
+          }
+        }
+      },
+      {
+        "id": "word-22",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "two",
+              "de": "zwei"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "dos"
+          }
+        }
+      },
+      {
+        "id": "word-23",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "three",
+              "de": "drei"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "tres"
+          }
+        }
+      },
+      {
+        "id": "word-24",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "red",
+              "de": "rot"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "rojo"
+          }
+        }
+      },
+      {
+        "id": "word-25",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "blue",
+              "de": "blau"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "azul"
+          }
+        }
+      },
+      {
+        "id": "word-26",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "green",
+              "de": "grün"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "verde"
+          }
+        }
+      },
+      {
+        "id": "word-27",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "big",
+              "de": "groß"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "grande"
+          }
+        }
+      },
+      {
+        "id": "word-28",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "small",
+              "de": "klein"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "pequeño"
+          }
+        }
+      },
+      {
+        "id": "word-29",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "to eat",
+              "de": "essen"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "comer"
+          }
+        }
+      },
+      {
+        "id": "word-30",
+        "front": {
+          "text": {
+            "type": "translated",
+            "values": {
+              "en": "to drink",
+              "de": "trinken"
+            }
+          }
+        },
+        "back": {
+          "text": {
+            "type": "same",
+            "value": "beber"
+          }
+        }
+      }
+    ]
+  },
+  "images": {}
+}

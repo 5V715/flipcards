@@ -7,8 +7,10 @@ import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.model.summary
 import dev.silas.flipcards.state.Action
+import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.CardDeleted
+import dev.silas.flipcards.state.CardGraded
 import dev.silas.flipcards.state.DeleteStackConfirmed
 import dev.silas.flipcards.state.EditorLoaded
 import dev.silas.flipcards.state.ErrorRaised
@@ -22,6 +24,8 @@ import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayLoaded
 import dev.silas.flipcards.state.Route
+import dev.silas.flipcards.state.Screen
+import dev.silas.flipcards.state.SessionStarted
 import dev.silas.flipcards.state.StackListLoaded
 import dev.silas.flipcards.state.StackMissing
 import dev.silas.flipcards.state.StackRenamed
@@ -31,17 +35,16 @@ import dev.silas.flipcards.state.update
 import dev.silas.flipcards.transfer.buildExport
 import dev.silas.flipcards.transfer.encodeExport
 import dev.silas.flipcards.transfer.parseImport
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import dev.silas.flipcards.state.Screen
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EffectsTest {
@@ -237,6 +240,29 @@ class EffectsTest {
         h.run(PlayLanguageChosen("de"))
         h.run(PlayLanguageChosen("fr")) // not a language of the stack
         assertEquals("de", h.env.playLanguages["a"])
+    }
+
+    @Test fun bestScoreIsLoadedAndSaved() = runTest {
+        val h = harness()
+        h.env.bestScores["a"] = 5
+        h.run(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        assertEquals(5, (h.current.screen as Screen.Play).bestScore)
+        h.run(SessionStarted(1))
+        h.run(AnswerSubmitted)
+        h.run(CardGraded(true)) // the only card, known first time with hints: 10 points
+        assertEquals(10, h.env.bestScores["a"])
+    }
+
+    @Test fun aLowerScoreKeepsTheBest() = runTest {
+        val h = harness()
+        h.env.bestScores["a"] = 50
+        h.run(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        h.run(SessionStarted(1))
+        h.run(AnswerSubmitted)
+        h.run(CardGraded(true))
+        assertEquals(50, h.env.bestScores["a"])
     }
 
     @Test fun leavingTheEditorStillNavigatesWhenTheSaveFails() = runTest { // review I1

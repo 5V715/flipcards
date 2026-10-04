@@ -18,4 +18,8 @@ interface Env {
     fun loadPlayLanguage(stackId: String): String?
 
     fun savePlayLanguage(stackId: String, language: String)
+
+    fun loadBestScore(stackId: String): Int?
+
+    fun saveBestScore(stackId: String, score: Int)
 }

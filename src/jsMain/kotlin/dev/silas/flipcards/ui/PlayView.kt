@@ -4,7 +4,12 @@ import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.completeCards
 import dev.silas.flipcards.model.resolveText
 import dev.silas.flipcards.play.HintMode
+import dev.silas.flipcards.play.Session
+import dev.silas.flipcards.play.Slot
+import dev.silas.flipcards.play.blankCount
 import dev.silas.flipcards.play.currentCard
+import dev.silas.flipcards.play.pointsPerCard
+import dev.silas.flipcards.play.typedPerSlot
 import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AnswerTyped
 import dev.silas.flipcards.state.CardGraded
@@ -13,15 +18,19 @@ import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayPhase
 import dev.silas.flipcards.state.Route
 import dev.silas.flipcards.state.Screen
+import dev.silas.flipcards.state.SecondLanguageChosen
 import dev.silas.flipcards.state.SessionStarted
 import dev.silas.flipcards.state.toHash
+import kotlinx.browser.document
 import kotlinx.html.ButtonType
 import kotlinx.html.CommonAttributeGroupFacade
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
+import kotlinx.html.DIV
 import kotlinx.html.a
 import kotlinx.html.button
 import kotlinx.html.div
+import kotlinx.html.dom.create
 import kotlinx.html.fieldSet
 import kotlinx.html.form
 import kotlinx.html.h1
@@ -39,6 +48,7 @@ import kotlinx.html.li
 import kotlinx.html.option
 import kotlinx.html.p
 import kotlinx.html.select
+import kotlinx.html.span
 import kotlinx.html.ul
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -81,14 +91,89 @@ private fun FlowContent.languageSelect(screen: Screen.Play, current: String, dis
     }
 }
 
-/** One side of a card as the player sees it: the image, then the text in the play language. */
-private fun FlowContent.cardFace(screen: Screen.Play, side: Side, language: String, revealed: Boolean) {
+/**
+ * One side of a card as the player sees it: the image, then the text in the play language,
+ * then, if it reads differently, the text in [secondLanguage].
+ */
+private fun FlowContent.cardFace(
+    screen: Screen.Play,
+    side: Side,
+    language: String,
+    revealed: Boolean,
+    secondLanguage: String? = null,
+) {
+    val fallback = screen.stack.languages.first()
     div(if (revealed) "flipcard revealed" else "flipcard") {
         div("side") {
             side.imageId?.let { screen.images[it] }?.let { img(alt = "", src = it, classes = "side-image") }
-            side.resolveText(language, screen.stack.languages.first())?.let { p("side-text") { +it } }
+            val text = side.resolveText(language, fallback)
+            text?.let { p("side-text") { +it } }
+            secondLanguage?.let { side.resolveText(it, fallback) }?.takeIf { it != text }?.let {
+                p("side-text second") {
+                    attributes["lang"] = secondLanguage
+                    +it
+                }
+            }
         }
     }
+}
+
+private fun FlowContent.playBar(screen: Screen.Play, session: Session, dispatch: Dispatch) {
+    div("play-bar") {
+        p("progress") { +"${session.queue.size} of ${session.total} left" }
+        p("score") { +"Score ${session.score}" }
+        languageSelect(screen, session.language, dispatch)
+    }
+}
+
+const val ANSWER_INPUT_ID = "answer-input"
+const val ANSWER_SLOTS_ID = "answer-slots"
+
+/**
+ * What the player has typed, drawn onto the blanks of [slots]. Without slots (no hints)
+ * the typed text is shown on a single line. The actual typing goes into an invisible input on top.
+ */
+private fun DIV.answerSlotsContent(slots: List<Slot>?, typed: String) {
+    if (slots == null) {
+        span("typed") { +typed }
+        span("caret") {}
+        return
+    }
+    val chars = slots.typedPerSlot(typed)
+    // The blank the next letter goes into.
+    val current = slots.indices.filter { slots[it] == Slot.Blank }.getOrNull(typed.length)
+    slots.forEachIndexed { i, slot ->
+        when {
+            slot is Slot.Fixed && slot.char.isWhitespace() -> span("slot gap") {}
+            slot is Slot.Fixed -> span("slot fixed") { +slot.char.toString() }
+            else -> {
+                val char = chars[i]
+                val classes = buildString {
+                    append("slot blank")
+                    if (char != null) append(" filled")
+                    if (i == current) append(" current")
+                }
+                span(classes) { char?.let { +it.toString() } }
+            }
+        }
+    }
+}
+
+private fun slotsClasses(slots: List<Slot>?) = if (slots == null) "answer-slots free" else "answer-slots"
+
+/** Redraws the slots after typing, which is silent so the hidden input keeps the focus. */
+fun patchPlay(screen: Screen.Play) {
+    val phase = screen.phase as? PlayPhase.Asking ?: return
+    val old = document.getElementById(ANSWER_SLOTS_ID) ?: return
+    val fresh = document.create.div(slotsClasses(phase.hint)) {
+        id = ANSWER_SLOTS_ID
+        attributes["aria-hidden"] = "true"
+        answerSlotsContent(phase.hint, phase.typed)
+    }
+    old.replaceWith(fresh)
+    // The input may hold characters that cannot go into a blank, such as spaces; drop them there too.
+    val input = document.getElementById(ANSWER_INPUT_ID) as? HTMLInputElement ?: return
+    if (input.value != phase.typed) input.value = phase.typed
 }
 
 private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, dispatch: Dispatch) {
@@ -96,7 +181,35 @@ private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, dispa
         a(href = Route.Home.toHash()) { +"← Stacks" }
     }
     h1 { +screen.stack.name }
+    screen.bestScore?.let { p("best") { +"Best score: $it" } }
     languageSelect(screen, phase.language, dispatch)
+    if (screen.stack.languages.size > 1) {
+        div("field language-field") {
+            label {
+                htmlFor = "second-language"
+                +"Also show on the front"
+            }
+            select {
+                id = "second-language"
+                option {
+                    value = ""
+                    selected = phase.secondLanguage == null
+                    +"Nothing"
+                }
+                screen.stack.languages.forEach { code ->
+                    option {
+                        value = code
+                        selected = code == phase.secondLanguage
+                        +code
+                    }
+                }
+                onChangeFunction = {
+                    val value = (it.target as HTMLSelectElement).value
+                    dispatch(SecondLanguageChosen(value.ifEmpty { null }))
+                }
+            }
+        }
+    }
     fieldSet("hint-modes") {
         legend { +"Hints" }
         listOf(
@@ -134,12 +247,8 @@ private fun FlowContent.asking(screen: Screen.Play, phase: PlayPhase.Asking, dis
     val card = session.currentCard(screen.stack)
     val backHasText = card.back.resolveText(session.language, screen.stack.languages.first()) != null
 
-    div("play-bar") {
-        p("progress") { +"${session.queue.size} of ${session.total} left" }
-        languageSelect(screen, session.language, dispatch)
-    }
-    cardFace(screen, card.front, session.language, revealed = false)
-    phase.hint?.let { p("hint") { +it } }
+    playBar(screen, session, dispatch)
+    cardFace(screen, card.front, session.language, revealed = false, secondLanguage = session.secondLanguage)
     form(classes = "answer-form") {
         onSubmitFunction = { event ->
             event.preventDefault()
@@ -147,15 +256,25 @@ private fun FlowContent.asking(screen: Screen.Play, phase: PlayPhase.Asking, dis
         }
         // An image cannot be typed, so such a card goes straight to revealing.
         if (backHasText) {
-            input(type = InputType.text) {
-                placeholder = "Your answer"
-                attributes["aria-label"] = "Your answer"
-                attributes["autocomplete"] = "off"
-                attributes["autocapitalize"] = "off"
-                attributes["spellcheck"] = "false"
-                autofocus()
-                value = phase.typed
-                onInputFunction = { dispatch(AnswerTyped((it.target as HTMLInputElement).value)) }
+            div("answer-entry") {
+                div(slotsClasses(phase.hint)) {
+                    id = ANSWER_SLOTS_ID
+                    attributes["aria-hidden"] = "true"
+                    answerSlotsContent(phase.hint, phase.typed)
+                }
+                // Invisible, on top of the slots: tapping them opens the keyboard, and typing lands here.
+                input(type = InputType.text, classes = "answer-capture") {
+                    id = ANSWER_INPUT_ID
+                    attributes["aria-label"] = phase.hint?.let { "Your answer, ${it.blankCount} letters" } ?: "Your answer"
+                    attributes["autocomplete"] = "off"
+                    attributes["autocorrect"] = "off"
+                    attributes["autocapitalize"] = "off"
+                    attributes["spellcheck"] = "false"
+                    phase.hint?.let { attributes["maxlength"] = it.blankCount.toString() }
+                    autofocus()
+                    value = phase.typed
+                    onInputFunction = { dispatch(AnswerTyped((it.target as HTMLInputElement).value)) }
+                }
             }
         }
         button(classes = "primary") {
@@ -170,10 +289,7 @@ private fun FlowContent.revealed(screen: Screen.Play, phase: PlayPhase.Revealed,
     val session = phase.session
     val card = session.currentCard(screen.stack)
 
-    div("play-bar") {
-        p("progress") { +"${session.queue.size} of ${session.total} left" }
-        languageSelect(screen, session.language, dispatch)
-    }
+    playBar(screen, session, dispatch)
     cardFace(screen, card.back, session.language, revealed = true)
     if (phase.typed.isNotBlank()) p("your-answer") { +"Your answer: ${phase.typed}" }
     when (phase.suggestion) {
@@ -204,6 +320,12 @@ private fun FlowContent.summary(screen: Screen.Play, phase: PlayPhase.Summary, d
     fun Side.label(): String = resolveText(result.language, fallback) ?: "(image)"
 
     h1 { +"${result.knownFirstTime} of ${result.total} known first time" }
+    p("score final") { +"Score: ${result.score} of ${result.total * pointsPerCard(result.mode)}" }
+    when {
+        !result.countsForBest -> p("best") { +"Only rounds with all cards count for the best score." }
+        result.score > (phase.previousBest ?: 0) -> p("best new") { +"New best score!" }
+        else -> screen.bestScore?.let { p("best") { +"Best score: $it" } }
+    }
     if (result.missed.isNotEmpty()) {
         h2 { +"Missed cards" }
         ul("missed-cards") {

@@ -124,6 +124,16 @@ class Effects(
             if (removedImages.isNotEmpty()) launch { removedImages.forEach { storage.deleteImage(it) } }
             if (editorBefore.stack != editorAfter.stack) scheduleAutosave()
         }
+
+        // A finished session that beat the best score: remember it.
+        val playBefore = before.screen as? Screen.Play
+        val playAfter = after.screen as? Screen.Play
+        val best = playAfter?.bestScore
+        if (playBefore != null && best != null && playBefore.stack.id == playAfter.stack.id &&
+            playBefore.bestScore != best
+        ) {
+            env.saveBestScore(playAfter.stack.id, best)
+        }
     }
 
     private suspend fun load(route: Route) {
@@ -137,7 +147,14 @@ class Effects(
             is Route.Play -> {
                 val stack = storage.loadStack(route.stackId)
                 if (stack == null) dispatch(StackMissing(route.stackId))
-                else dispatch(PlayLoaded(stack, storage.loadImages(stack.id), env.loadPlayLanguage(stack.id)))
+                else dispatch(
+                    PlayLoaded(
+                        stack,
+                        storage.loadImages(stack.id),
+                        env.loadPlayLanguage(stack.id),
+                        env.loadBestScore(stack.id),
+                    ),
+                )
             }
             Route.Unknown -> {}
         }

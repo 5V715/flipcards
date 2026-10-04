@@ -90,17 +90,23 @@ class StoreTest {
 
         store.dispatch(Navigate(Route.Play("a")))
         advanceUntilIdle()
+        (root.querySelector("#hint-mode-length_only") as HTMLElement).click()
         button("Start").click()
         assertTrue("Spain" in root.textContent!!)
 
-        val input = root.querySelector("input[placeholder='Your answer']") as HTMLInputElement
+        // The letters typed into the hidden field appear in the blanks; the field keeps the focus.
+        val input = root.querySelector("#answer-input") as HTMLInputElement
         input.value = "madrid"
         input.dispatchEvent(Event("input", EventInit(bubbles = true)))
+        assertEquals("madrid", root.querySelector(".answer-slots")!!.textContent)
+        assertTrue(root.contains(input))
         button("Show answer").click()
         assertTrue("Looks right" in root.textContent!!)
 
         button("Knew it").click()
         assertTrue("1 of 1 known first time" in root.textContent!!)
+        assertTrue("New best score!" in root.textContent!!)
+        assertEquals(20, env.bestScores["a"])
     }
 
     @Test fun typingUpdatesTheIncompleteBadge() = runTest { // review I3

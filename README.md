@@ -75,8 +75,11 @@ Editor
 Play (use a stack with a flag card, a text card and an incomplete card)
 
 - [ ] Setup preselects the language used last time, also after a reload.
-- [ ] Each hint mode shows the expected pattern. The incomplete card never appears.
-- [ ] The answer field has the focus on every new card. Enter reveals. Typing `bogota` for `Bogotá` gives `Looks right`, and Enter then accepts `Knew it`.
+- [ ] Each hint mode shows the expected blanks. The incomplete card never appears.
+- [ ] On every new card, typing fills the blanks straight away; on a phone, tapping the blanks opens the keyboard. Revealed letters and spaces are skipped, Backspace removes the last letter. Enter reveals. Typing `bogota` for `Bogotá` gives `Looks right`, and Enter then accepts `Knew it`.
+- [ ] With `No hint`, the typed answer appears on one line with a caret.
+- [ ] `Also show on the front` set to `de` shows the German text under the front text, and nothing extra when both read the same.
+- [ ] Each card known the first time scores 10, 20 or 30 points, by hint mode. After a full round the summary shows `New best score!` when it beat the best, and setup shows `Best score`, also after a reload. `Play missed cards only` never changes the best score.
 - [ ] A wrong answer puts the focus on `Didn't know`; choosing `Knew it` anyway works.
 - [ ] Switching the language in the middle of a card changes the hint and the revealed answer.
 - [ ] A missed card comes back. The summary counts it as missed, and `Play missed cards only` plays just that card.

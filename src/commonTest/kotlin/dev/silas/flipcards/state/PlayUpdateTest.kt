@@ -6,6 +6,7 @@ import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.play.SessionResult
+import dev.silas.flipcards.play.pattern
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -72,13 +73,16 @@ class PlayUpdateTest {
 
     @Test fun typeSubmitAndGrade() {
         var s = update(setup(), SessionStarted(1, listOf("b")))
-        assertEquals("_ _ _ _ _ _", (s.phase as PlayPhase.Asking).hint)
+        assertEquals("_ _ _ _ _ _", (s.phase as PlayPhase.Asking).hint?.pattern())
         s = update(s, AnswerTyped("madrid"))
         s = update(s, AnswerSubmitted)
         assertEquals(true, (s.phase as PlayPhase.Revealed).suggestion)
         assertEquals("madrid", (s.phase as PlayPhase.Revealed).typed)
         s = update(s, CardGraded(true))
-        assertEquals(SessionResult("en", HintMode.LENGTH_ONLY, 1, emptyList()), (s.phase as PlayPhase.Summary).result)
+        assertEquals(
+            SessionResult("en", HintMode.LENGTH_ONLY, 1, emptyList(), score = 20, countsForBest = false),
+            (s.phase as PlayPhase.Summary).result,
+        )
     }
 
     @Test fun wrongAndEmptyAnswers() {
@@ -108,10 +112,10 @@ class PlayUpdateTest {
 
     @Test fun switchLanguageMidSession() {
         var s = update(setup(), SessionStarted(1, listOf("a")))
-        assertEquals("_ _ _ _ _ _", (s.phase as PlayPhase.Asking).hint)
+        assertEquals("_ _ _ _ _ _", (s.phase as PlayPhase.Asking).hint?.pattern())
         s = update(update(s, AnswerTyped("wi")), PlayLanguageChosen("de"))
         val asking = s.phase as PlayPhase.Asking
-        assertEquals("_ _ _ _", asking.hint)
+        assertEquals("_ _ _ _", asking.hint?.pattern())
         assertEquals("de", asking.session.language)
         assertEquals("wi", asking.typed)
         s = update(update(s, AnswerTyped("wien")), AnswerSubmitted)
@@ -130,5 +134,67 @@ class PlayUpdateTest {
         assertEquals(HintMode.NONE, again.session.mode)
         // "Play again" plays every complete card of the stack (a, b and c), not only the previous subset.
         assertEquals(3, (update(s, SessionStarted(2)).phase as PlayPhase.Asking).session.total)
+    }
+
+    @Test fun loadedKeepsTheBestScore() =
+        assertEquals(
+            150,
+            (update(AppState(Route.Play("s1")), PlayLoaded(stack, images, null, bestScore = 150)).screen as Screen.Play)
+                .bestScore,
+        )
+
+    @Test fun secondLanguageIsChosenInSetupAndKeptForReplays() {
+        var s = update(setup(), SecondLanguageChosen("de"))
+        assertEquals("de", (s.phase as PlayPhase.Setup).secondLanguage)
+        assertEquals(s, update(s, SecondLanguageChosen("fr")))
+        s = update(s, SessionStarted(1, listOf("b")))
+        assertEquals("de", (s.phase as PlayPhase.Asking).session.secondLanguage)
+        s = update(update(s, AnswerSubmitted), CardGraded(true))
+        assertEquals("de", (update(s, SessionStarted(2)).phase as PlayPhase.Asking).session.secondLanguage)
+        assertNull((update(setup(), SecondLanguageChosen(null)).phase as PlayPhase.Setup).secondLanguage)
+    }
+
+    @Test fun typingGoesIntoTheBlanks() {
+        var s = update(setup(), SessionStarted(1, listOf("b"))) // Madrid, length only
+        s = update(s, AnswerTyped("ma dridxx"))
+        assertEquals("madrid", (s.phase as PlayPhase.Asking).typed)
+        s = update(update(s, AnswerTyped("mad")), AnswerSubmitted)
+        val revealed = s.phase as PlayPhase.Revealed
+        assertEquals("mad___", revealed.typed)
+        assertEquals(false, revealed.suggestion)
+    }
+
+    @Test fun withoutHintsTheAnswerIsTypedFreely() {
+        var s = update(setup(mode = HintMode.NONE), SessionStarted(1, listOf("b")))
+        assertNull((s.phase as PlayPhase.Asking).hint)
+        s = update(update(s, AnswerTyped("Madrid ")), AnswerSubmitted)
+        assertEquals(true, (s.phase as PlayPhase.Revealed).suggestion)
+    }
+
+    /** Plays to the summary. Cards are known when they come back, and also the first time if [firstTime]. */
+    private fun playThrough(state: AppState, firstTime: Boolean): AppState {
+        var s = state
+        while (true) {
+            val asking = s.phase as? PlayPhase.Asking ?: return s
+            val returning = asking.session.queue.first() in asking.session.missed
+            s = update(update(s, AnswerSubmitted), CardGraded(firstTime || returning))
+        }
+    }
+
+    @Test fun aFullRoundSetsTheBestScore() {
+        val first = playThrough(update(setup(), SessionStarted(1)), firstTime = true) // 3 cards × 20
+        assertEquals(60, (first.screen as Screen.Play).bestScore)
+        assertNull((first.phase as PlayPhase.Summary).previousBest)
+
+        val worse = playThrough(update(first, SessionStarted(2)), firstTime = false)
+        assertEquals(0, (worse.phase as PlayPhase.Summary).result.score)
+        assertEquals(60, (worse.phase as PlayPhase.Summary).previousBest)
+        assertEquals(60, (worse.screen as Screen.Play).bestScore)
+    }
+
+    @Test fun aRoundWithSomeCardsDoesNotSetTheBestScore() {
+        val s = playThrough(update(setup(), SessionStarted(1, listOf("b"))), firstTime = true)
+        assertEquals(20, (s.phase as PlayPhase.Summary).result.score)
+        assertNull((s.screen as Screen.Play).bestScore)
     }
 }

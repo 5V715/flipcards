@@ -7,6 +7,7 @@ class FakeEnv(override val storage: InMemoryStorage = InMemoryStorage()) : Env {
     val downloads = mutableListOf<Pair<String, String>>()
     val navigations = mutableListOf<Route>()
     val playLanguages = mutableMapOf<String, String>()
+    val bestScores = mutableMapOf<String, Int>()
     private var ids = 0
 
     override fun newId(): String = "id${++ids}"
@@ -23,5 +24,11 @@ class FakeEnv(override val storage: InMemoryStorage = InMemoryStorage()) : Env {
 
     override fun savePlayLanguage(stackId: String, language: String) {
         playLanguages[stackId] = language
+    }
+
+    override fun loadBestScore(stackId: String): Int? = bestScores[stackId]
+
+    override fun saveBestScore(stackId: String, score: Int) {
+        bestScores[stackId] = score
     }
 }

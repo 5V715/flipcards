@@ -106,5 +106,21 @@ class BrowserEnv(override val storage: Storage) : Env {
         }
     }
 
+    override fun loadBestScore(stackId: String): Int? =
+        try {
+            localStorage.getItem(bestScoreKey(stackId))?.toIntOrNull()
+        } catch (e: Throwable) {
+            null
+        }
+
+    override fun saveBestScore(stackId: String, score: Int) {
+        try {
+            localStorage.setItem(bestScoreKey(stackId), score.toString())
+        } catch (e: Throwable) {
+        }
+    }
+
     private fun playLanguageKey(stackId: String) = "flipcards.playLanguage.$stackId"
+
+    private fun bestScoreKey(stackId: String) = "flipcards.bestScore.$stackId"
 }

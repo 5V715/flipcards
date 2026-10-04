@@ -36,4 +36,25 @@ class HintTest {
         assertNull(hint(null, HintMode.HINTED, Random(1)))
         assertNull(hint("  ", HintMode.LENGTH_ONLY, Random(1)))
     }
+
+    @Test fun slotsKeepSpacesAndRevealedLetters() {
+        val slots = hintSlots("ab c", HintMode.LENGTH_ONLY, Random(1))!!
+        assertEquals(listOf(Slot.Blank, Slot.Blank, Slot.Fixed(' '), Slot.Blank), slots)
+        assertEquals(3, slots.blankCount)
+    }
+
+    @Test fun typedLettersFillTheBlanksInOrder() {
+        val slots = listOf(Slot.Blank, Slot.Fixed('i'), Slot.Blank, Slot.Fixed(' '), Slot.Blank)
+        assertEquals("_i_ _", slots.fill(""))
+        assertEquals("Vi_ _", slots.fill("V"))
+        assertEquals("Vie n", slots.fill("Ven"))
+        assertEquals(listOf('V', null, 'e', null, null), slots.typedPerSlot("Ve"))
+    }
+
+    @Test fun onlyLettersAndDigitsFitTheBlanks() {
+        val slots = listOf(Slot.Blank, Slot.Fixed(' '), Slot.Blank)
+        assertEquals("ab", slots.acceptTyped("a b"))
+        assertEquals("ab", slots.acceptTyped("abc"))
+        assertEquals("ó1", slots.acceptTyped("ó-1"))
+    }
 }

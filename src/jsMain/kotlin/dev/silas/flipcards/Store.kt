@@ -7,6 +7,7 @@ import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.update
 import dev.silas.flipcards.ui.patchEditor
+import dev.silas.flipcards.ui.patchPlay
 import dev.silas.flipcards.ui.render
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLElement
@@ -35,6 +36,7 @@ class Store(private val root: HTMLElement, env: Env, private val scope: Coroutin
         } else {
             // Silent actions skip the redraw, so the few things they change on screen are patched by hand.
             (state.screen as? Screen.Editor)?.let { patchEditor(it) }
+            (state.screen as? Screen.Play)?.let { patchPlay(it) }
         }
         effects.handle(action, before, state)
     }

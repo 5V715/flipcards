@@ -16,7 +16,12 @@ sealed interface Action {
 data class Navigate(val route: Route) : Action
 data class StackListLoaded(val stacks: List<StackSummary>) : Action
 data class EditorLoaded(val stack: Stack, val images: Map<String, String>) : Action
-data class PlayLoaded(val stack: Stack, val images: Map<String, String>, val storedLanguage: String?) : Action
+data class PlayLoaded(
+    val stack: Stack,
+    val images: Map<String, String>,
+    val storedLanguage: String?,
+    val bestScore: Int? = null,
+) : Action
 data class StackMissing(val stackId: String) : Action
 data class ErrorRaised(val message: String) : Action
 data object ErrorDismissed : Action
@@ -65,6 +70,9 @@ sealed interface PlayAction : Action
 
 data class PlayLanguageChosen(val language: String) : PlayAction
 data class HintModeChosen(val mode: HintMode) : PlayAction
+
+/** The language also shown on the front, or null for none. */
+data class SecondLanguageChosen(val language: String?) : PlayAction
 
 /** [cardIds] limits the session to those cards; null means all complete cards. */
 data class SessionStarted(val seed: Long, val cardIds: List<String>? = null) : PlayAction

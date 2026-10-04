@@ -23,6 +23,8 @@ import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
+import kotlinx.browser.document
+import kotlinx.coroutines.MainScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -107,8 +109,11 @@ class EditorViewTest {
         val page = editor()
         assertEquals(2, page.all("section.card-editor").size)
         assertTrue("Card 1" in page.card(1).textContent!!)
-        assertFalse("Incomplete" in page.card(1).textContent!!)
-        assertTrue("Incomplete" in page.card(2).textContent!!)
+        // The badge is always in the page and hidden for complete cards, so the store can switch it
+        // on and off while the user types (typing does not re-render).
+        assertTrue((page.one("#incomplete-a")).hidden)
+        assertFalse((page.one("#incomplete-b")).hidden)
+        assertEquals("Incomplete", page.one("#incomplete-b").textContent)
     }
 
     @Test fun cardButtons() {
@@ -157,6 +162,7 @@ class EditorViewTest {
 
     @Test fun togglingTranslated() {
         val page = editor()
+        stubConfirm(true)
         page.field("Translated", page.side(1, "front")).click()
         page.field("Translated", page.side(1, "back")).click()
         assertEquals(
@@ -187,5 +193,35 @@ class EditorViewTest {
         assertEquals(1, errors.size)
         assertEquals("This file is not an image the browser can read.", errors[0].textContent)
         assertTrue(page.side(2, "back").contains(errors[0]))
+    }
+
+    @Test fun droppingTranslationsAsksFirst() { // review I2
+        val page = editor()
+        val checkbox = page.field("Translated", page.side(1, "back")) as HTMLInputElement
+        val questions = stubConfirm(false)
+        checkbox.click()
+        assertEquals(listOf("Use one text for all languages? The text for de is deleted."), questions)
+        assertTrue(page.dispatched.isEmpty())
+        assertTrue(checkbox.checked)
+    }
+
+    @Test fun noQuestionWhenNoTranslationWouldBeLost() { // review I2
+        val onlyFirst = stack.copy(
+            cards = listOf(Card("a", Side(), Side(SideText.Translated(mapOf("en" to "Vienna", "de" to " "))))),
+        )
+        val page = editor(onlyFirst)
+        val questions = stubConfirm(false)
+        page.field("Translated", page.side(1, "back")).click()
+        assertTrue(questions.isEmpty())
+        assertEquals(listOf<Action>(SideTextModeChanged("a", Face.BACK, false)), page.dispatched)
+    }
+
+    @Test fun focusStaysOnTheControlAfterARedraw() { // review I4
+        val page = editor()
+        val moveDown = page.one("#a-down")
+        moveDown.focus()
+        val moved = stack.copy(cards = stack.cards.reversed())
+        render(page.root, AppState(Route.Edit("s1"), Screen.Editor(moved, mapOf("i1" to url), false)), {}, MainScope())
+        assertEquals("a-down", document.activeElement?.id)
     }
 }

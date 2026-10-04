@@ -71,8 +71,9 @@ private fun validate(file: ExportFile) {
     val stack = file.stack
     if (stack.name.isBlank()) throw ImportException("The stack has no name.")
     if (stack.languages.isEmpty()) throw ImportException("The stack has no languages.")
-    val codes = stack.languages.map { it.trim() }
-    if (codes.any { it.isEmpty() } || codes.toSet().size != codes.size) {
+    // Codes with surrounding spaces are refused too: " en" would later sit next to a typed "en".
+    val codes = stack.languages
+    if (codes.any { it.isEmpty() || it != it.trim() } || codes.toSet().size != codes.size) {
         throw ImportException("The stack has invalid language codes.")
     }
     stack.cards.forEachIndexed { index, card ->

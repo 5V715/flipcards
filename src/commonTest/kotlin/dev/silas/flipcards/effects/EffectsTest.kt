@@ -37,6 +37,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import dev.silas.flipcards.state.Screen
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -236,5 +237,16 @@ class EffectsTest {
         h.run(PlayLanguageChosen("de"))
         h.run(PlayLanguageChosen("fr")) // not a language of the stack
         assertEquals("de", h.env.playLanguages["a"])
+    }
+
+    @Test fun leavingTheEditorStillNavigatesWhenTheSaveFails() = runTest { // review I1
+        val h = editing()
+        h.storage.failSaves = true
+        h.run(StackRenamed("X"))
+        h.run(Navigate(Route.Home))
+        advanceUntilIdle()
+        assertTrue(ErrorRaised("Could not save: full") in h.dispatched)
+        assertTrue(h.current.screen is Screen.StackList)
+        assertEquals("Could not save: full", h.current.error)
     }
 }

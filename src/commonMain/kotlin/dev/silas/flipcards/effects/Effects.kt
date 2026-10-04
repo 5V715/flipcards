@@ -58,7 +58,16 @@ class Effects(
                 val unsaved = (before.screen as? Screen.Editor)?.takeIf { !it.saved }?.stack
                 if (unsaved != null) autosave?.cancel()
                 launch {
-                    if (unsaved != null) storage.saveStack(unsaved)
+                    if (unsaved != null) {
+                        // A failed save must not block the navigation, or the user is stuck on "Loading…".
+                        try {
+                            storage.saveStack(unsaved)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            dispatch(ErrorRaised("Could not save: ${e.message}"))
+                        }
+                    }
                     load(action.route)
                 }
             }

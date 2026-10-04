@@ -106,6 +106,7 @@ private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, dispa
         ).forEach { (mode, text) ->
             label("checkbox") {
                 input(type = InputType.radio, name = "hint-mode") {
+                    id = "hint-mode-${mode.name.lowercase()}"
                     checked = mode == phase.mode
                     onChangeFunction = { dispatch(HintModeChosen(mode)) }
                 }

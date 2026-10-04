@@ -102,4 +102,26 @@ class StoreTest {
         button("Knew it").click()
         assertTrue("1 of 1 known first time" in root.textContent!!)
     }
+
+    @Test fun typingUpdatesTheIncompleteBadge() = runTest { // review I3
+        val env = FakeEnv()
+        env.storage.stacks["a"] = Stack("a", "Alpha", listOf("en"), listOf(Card("c1", Side(SideText.Same("x")), Side())))
+        val root = newRoot()
+        val store = Store(root, env, this)
+        store.dispatch(Navigate(Route.Edit("a")))
+        advanceUntilIdle()
+        val badge = root.querySelector("#incomplete-c1") as HTMLElement
+        assertEquals(false, badge.hidden)
+
+        val back = root.querySelector("fieldset[data-face='back'] input[type=text]") as HTMLInputElement
+        back.value = "y"
+        back.dispatchEvent(Event("input", EventInit(bubbles = true)))
+        assertTrue(root.contains(back))
+        assertEquals(true, badge.hidden)
+
+        back.value = ""
+        back.dispatchEvent(Event("input", EventInit(bubbles = true)))
+        assertEquals(false, badge.hidden)
+        advanceUntilIdle()
+    }
 }

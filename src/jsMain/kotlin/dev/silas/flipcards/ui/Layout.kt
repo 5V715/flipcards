@@ -6,6 +6,7 @@ import dev.silas.flipcards.state.ErrorDismissed
 import dev.silas.flipcards.state.Route
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.toHash
+import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.dom.clear
 import kotlinx.html.ButtonType
@@ -29,6 +30,11 @@ fun saveStatusText(saved: Boolean): String = if (saved) "Saved" else "Not saved"
 
 /** Replaces everything inside [root] with the screen for [state]. */
 fun render(root: HTMLElement, state: AppState, dispatch: Dispatch, scope: CoroutineScope) {
+    // The redraw replaces every element. Remember which control had the focus, by id,
+    // so that a keyboard user is not thrown back to the top of the page.
+    val focusedId = (document.activeElement as? HTMLElement)
+        ?.takeIf { root.contains(it) }?.id?.takeIf { it.isNotEmpty() }
+
     root.clear()
     root.append {
         main("page") {
@@ -42,8 +48,9 @@ fun render(root: HTMLElement, state: AppState, dispatch: Dispatch, scope: Corout
             }
         }
     }
-    // A fresh DOM has no focus; views mark the element that should get it.
-    (root.querySelector("[data-autofocus]") as? HTMLElement)?.focus()
+    // If that control still exists it keeps the focus; otherwise the element the view marked gets it.
+    val stillThere = focusedId?.let { document.getElementById(it) as? HTMLElement }?.takeIf { root.contains(it) }
+    (stillThere ?: root.querySelector("[data-autofocus]") as? HTMLElement)?.focus()
 }
 
 fun renderFatal(root: HTMLElement) {

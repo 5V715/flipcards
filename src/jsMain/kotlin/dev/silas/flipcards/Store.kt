@@ -6,10 +6,8 @@ import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.update
-import dev.silas.flipcards.ui.SAVE_STATUS_ID
+import dev.silas.flipcards.ui.patchEditor
 import dev.silas.flipcards.ui.render
-import dev.silas.flipcards.ui.saveStatusText
-import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLElement
 
@@ -35,14 +33,9 @@ class Store(private val root: HTMLElement, env: Env, private val scope: Coroutin
         if (!action.silent && state != before) {
             render(root, state, ::dispatch, scope)
         } else {
-            updateSaveStatus()
+            // Silent actions skip the redraw, so the few things they change on screen are patched by hand.
+            (state.screen as? Screen.Editor)?.let { patchEditor(it) }
         }
         effects.handle(action, before, state)
-    }
-
-    /** Silent actions skip the redraw, so the one thing they change on screen is patched by hand. */
-    private fun updateSaveStatus() {
-        val editor = state.screen as? Screen.Editor ?: return
-        document.getElementById(SAVE_STATUS_ID)?.textContent = saveStatusText(editor.saved)
     }
 }

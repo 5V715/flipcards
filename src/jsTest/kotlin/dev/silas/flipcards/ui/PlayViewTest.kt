@@ -24,6 +24,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
+import kotlinx.coroutines.MainScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -187,5 +188,19 @@ class PlayViewTest {
         assertEquals("3 of 3 known first time", page.one("h1").textContent)
         assertFalse("Missed cards" in page.text)
         assertFalse(page.hasButton("Play missed cards only"))
+    }
+
+    @Test fun choosingAHintModeKeepsTheFocusOnIt() { // review I4
+        val page = play(PlayPhase.Setup("en", HintMode.HINTED))
+        val radio = page.field("Length only")
+        radio.focus()
+        render(
+            page.root,
+            AppState(Route.Play("s1"), Screen.Play(stack, emptyMap(), PlayPhase.Setup("en", HintMode.LENGTH_ONLY))),
+            {},
+            MainScope(),
+        )
+        assertEquals(radio.id, document.activeElement?.id)
+        assertTrue(radio.id.isNotEmpty())
     }
 }

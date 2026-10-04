@@ -69,6 +69,9 @@ a { color: var(--primary); }
     outline-offset: 2px;
 }
 
+/* Classes that set display would otherwise override the hidden attribute. */
+[hidden] { display: none !important; }
+
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -107,7 +110,7 @@ button.primary, .button.primary {
 }
 
 button.danger { color: var(--danger); }
-button:disabled { opacity: 0.4; cursor: default; }
+button:disabled, button[aria-disabled="true"] { opacity: 0.4; cursor: default; }
 
 /* The real file input is visually hidden inside its label; show its focus on the label. */
 .file-button:focus-within {

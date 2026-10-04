@@ -50,9 +50,24 @@ import kotlinx.html.p
 import kotlinx.html.section
 import kotlinx.html.span
 import kotlinx.html.ul
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 
 private const val NEW_LANGUAGE_ID = "new-language"
+
+fun incompleteBadgeId(cardId: String): String = "incomplete-$cardId"
+
+/**
+ * Brings the parts of the editor up to date that typing can change. Typing does not re-render
+ * (the field would lose focus), so the store calls this after every silent action instead.
+ */
+fun patchEditor(screen: Screen.Editor) {
+    document.getElementById(SAVE_STATUS_ID)?.textContent = saveStatusText(screen.saved)
+    val first = screen.stack.languages.first()
+    screen.stack.cards.forEach { card ->
+        (document.getElementById(incompleteBadgeId(card.id)) as? HTMLElement)?.hidden = card.isComplete(first)
+    }
+}
 
 fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: CoroutineScope) {
     val stack = screen.stack
@@ -90,6 +105,7 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
                     if (stack.languages.size > 1) {
                         button {
                             type = ButtonType.button
+                            id = "remove-language-$code"
                             attributes["aria-label"] = "Remove $code"
                             +"×"
                             onClickFunction = {
@@ -126,19 +142,28 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
         section("card-editor") {
             div("card-header") {
                 h2 { +"Card ${index + 1}" }
-                if (!card.isComplete(stack.languages.first())) span("badge") { +"Incomplete" }
+                // Always present and hidden for complete cards, so patchEditor() can toggle it.
+                span("badge") {
+                    id = incompleteBadgeId(card.id)
+                    if (card.isComplete(stack.languages.first())) attributes["hidden"] = "hidden"
+                    +"Incomplete"
+                }
                 div("actions") {
                     button {
                         type = ButtonType.button
+                        id = "${card.id}-up"
                         attributes["aria-label"] = "Move up"
-                        disabled = index == 0
+                        // aria-disabled, not disabled: the button stays focusable, so the focus is not
+                        // lost when a card reaches the top. Moving past the end is ignored by update().
+                        if (index == 0) attributes["aria-disabled"] = "true"
                         +"↑"
                         onClickFunction = { dispatch(CardMoved(card.id, -1)) }
                     }
                     button {
                         type = ButtonType.button
+                        id = "${card.id}-down"
                         attributes["aria-label"] = "Move down"
-                        disabled = index == stack.cards.lastIndex
+                        if (index == stack.cards.lastIndex) attributes["aria-disabled"] = "true"
                         +"↓"
                         onClickFunction = { dispatch(CardMoved(card.id, 1)) }
                     }
@@ -160,6 +185,7 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
     div("actions") {
         button(classes = "primary") {
             type = ButtonType.button
+            id = "add-card"
             +"Add card"
             onClickFunction = { dispatch(CardAdded(newId())) }
         }
@@ -201,9 +227,22 @@ private fun FlowContent.sideEditor(
 
         label("checkbox") {
             input(type = InputType.checkBox) {
+                id = "$idPrefix-translated"
                 checked = text is SideText.Translated
-                onChangeFunction = {
-                    dispatch(SideTextModeChanged(card.id, face, (it.target as HTMLInputElement).checked))
+                onChangeFunction = { event ->
+                    val checkbox = event.target as HTMLInputElement
+                    // One text for all languages keeps only the first language's text; ask before dropping the rest.
+                    val lost = (text as? SideText.Translated)?.values.orEmpty()
+                        .filter { (language, value) -> language != screen.stack.languages.first() && value.isNotBlank() }
+                        .keys
+                    val question = "Use one text for all languages? " +
+                        (if (lost.size == 1) "The text for " else "The texts for ") +
+                        lost.joinToString(", ") + (if (lost.size == 1) " is deleted." else " are deleted.")
+                    if (checkbox.checked || lost.isEmpty() || window.confirm(question)) {
+                        dispatch(SideTextModeChanged(card.id, face, checkbox.checked))
+                    } else {
+                        checkbox.checked = true
+                    }
                 }
             }
             +"Translated"
@@ -222,6 +261,7 @@ private fun FlowContent.sideEditor(
             label("button file-button") {
                 +"Choose image"
                 input(type = InputType.file, classes = "visually-hidden") {
+                    id = "$idPrefix-image"
                     accept = "image/*"
                     onChangeFunction = { event ->
                         val file = (event.target as HTMLInputElement).files?.item(0)
@@ -240,6 +280,7 @@ private fun FlowContent.sideEditor(
             if (side.imageId != null) {
                 button {
                     type = ButtonType.button
+                    id = "$idPrefix-remove-image"
                     +"Remove image"
                     onClickFunction = { dispatch(ImageRemoved(card.id, face)) }
                 }

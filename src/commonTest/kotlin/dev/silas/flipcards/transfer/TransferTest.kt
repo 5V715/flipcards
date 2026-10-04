@@ -103,4 +103,10 @@ class TransferTest {
         assertEquals(invalid, messageFor(valid.copy(images = mapOf("i1" to "javascript:alert(1)"))))
         assertEquals(invalid, messageFor(valid.copy(images = mapOf("i1" to "https://example.com/a.png"))))
     }
+
+    @Test fun rejectsLanguageCodesWithSurroundingSpaces() { // review I5
+        val invalid = "The stack has invalid language codes."
+        assertEquals(invalid, messageFor(valid.copy(stack = valid.stack.copy(languages = listOf(" en")))))
+        assertEquals(invalid, messageFor(valid.copy(stack = valid.stack.copy(languages = listOf("en ", "de")))))
+    }
 }

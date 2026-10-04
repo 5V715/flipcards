@@ -1,6 +1,9 @@
 package dev.silas.flipcards
 
 import dev.silas.flipcards.effects.FakeEnv
+import dev.silas.flipcards.model.Card
+import dev.silas.flipcards.model.Side
+import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.state.Navigate
 import dev.silas.flipcards.state.Route
@@ -72,5 +75,31 @@ class StoreTest {
         assertEquals("Alpha!", env.storage.stacks["a"]!!.name)
         assertTrue(root.contains(input))
         assertEquals("Saved", status())
+    }
+
+    @Test fun playingASessionFromStartToSummary() = runTest {
+        val env = FakeEnv()
+        env.storage.stacks["a"] = Stack(
+            "a", "Capitals", listOf("en"),
+            listOf(Card("c1", Side(SideText.Same("Spain")), Side(SideText.Same("Madrid")))),
+        )
+        val root = newRoot()
+        val store = Store(root, env, this)
+        fun button(label: String) =
+            root.querySelectorAll("button").asList().first { it.textContent == label } as HTMLElement
+
+        store.dispatch(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        button("Start").click()
+        assertTrue("Spain" in root.textContent!!)
+
+        val input = root.querySelector("input[placeholder='Your answer']") as HTMLInputElement
+        input.value = "madrid"
+        input.dispatchEvent(Event("input", EventInit(bubbles = true)))
+        button("Show answer").click()
+        assertTrue("Looks right" in root.textContent!!)
+
+        button("Knew it").click()
+        assertTrue("1 of 1 known first time" in root.textContent!!)
     }
 }

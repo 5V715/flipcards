@@ -2,6 +2,9 @@ package dev.silas.flipcards.effects
 
 import dev.silas.flipcards.i18n.stringsFor
 import dev.silas.flipcards.model.Stack
+import dev.silas.flipcards.samples.SAMPLES_LISTING_URL
+import dev.silas.flipcards.samples.Sample
+import dev.silas.flipcards.samples.parseSampleListing
 import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.DeleteStackConfirmed
@@ -16,6 +19,12 @@ import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayLoaded
 import dev.silas.flipcards.state.Route
+import dev.silas.flipcards.state.SampleAdded
+import dev.silas.flipcards.state.SampleChosen
+import dev.silas.flipcards.state.SampleFailed
+import dev.silas.flipcards.state.SamplesFailed
+import dev.silas.flipcards.state.SamplesLoaded
+import dev.silas.flipcards.state.SamplesRequested
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.StackListLoaded
 import dev.silas.flipcards.state.StackMissing
@@ -99,6 +108,20 @@ class Effects(
 
             is ImportFileRead -> launch { import(action.text) }
 
+            SamplesRequested -> scope.launch {
+                val samples = try {
+                    parseSampleListing(env.fetchText(SAMPLES_LISTING_URL))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    dispatch(SamplesFailed)
+                    return@launch
+                }
+                dispatch(SamplesLoaded(samples))
+            }
+
+            is SampleChosen -> launch { addSample(action.sample) }
+
             is ImageChosen -> launch {
                 val stackId = (after.screen as? Screen.Editor)?.stack?.id ?: return@launch
                 try {
@@ -165,18 +188,39 @@ class Effects(
         }
     }
 
-    private suspend fun import(text: String) {
+    /** Returns whether the stack was imported; if not, the reason is already shown. */
+    private suspend fun import(text: String): Boolean {
         val file = try {
             parseImport(text)
         } catch (e: ImportException) {
             dispatch(ErrorRaised(strings.importProblem(e.problem, e.cardNumber)))
-            return
+            return false
         }
         val fresh = withFreshIds(file, env::newId)
         val taken = storage.loadStackSummaries().map { it.name }.toSet()
         val stack = fresh.stack.copy(name = uniqueName(fresh.stack.name, taken))
         storage.importStack(stack, fresh.images)
         dispatch(StackListLoaded(storage.loadStackSummaries()))
+        return true
+    }
+
+    private suspend fun addSample(sample: Sample) {
+        val text = try {
+            env.fetchText(sample.url)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            dispatch(ErrorRaised(strings.sampleDownloadFailed))
+            dispatch(SampleFailed(sample.fileName))
+            return
+        }
+        // Whatever goes wrong while storing, the sample must not stay "Adding…".
+        var added = false
+        try {
+            added = import(text)
+        } finally {
+            dispatch(if (added) SampleAdded(sample.fileName) else SampleFailed(sample.fileName))
+        }
     }
 
     /** Saves once the user has stopped editing for [AUTOSAVE_DELAY_MS]. Each new edit restarts the wait. */

@@ -4,6 +4,7 @@ import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.model.StackSummary
 import dev.silas.flipcards.play.HintMode
+import dev.silas.flipcards.samples.Sample
 
 /** Something that happened: a click, a keystroke, or the result of asynchronous work. */
 sealed interface Action {
@@ -35,6 +36,17 @@ data object NewStackRequested : Action
 data class DeleteStackConfirmed(val stackId: String) : Action
 data class ExportRequested(val stackId: String) : Action
 data class ImportFileRead(val text: String) : Action
+
+// Sample stacks from the repository
+
+/** Opens the list of samples, which is then downloaded. */
+data object SamplesRequested : Action
+data object SamplesClosed : Action
+data class SamplesLoaded(val samples: List<Sample>) : Action
+data object SamplesFailed : Action
+data class SampleChosen(val sample: Sample) : Action
+data class SampleAdded(val fileName: String) : Action
+data class SampleFailed(val fileName: String) : Action
 
 // Editor
 

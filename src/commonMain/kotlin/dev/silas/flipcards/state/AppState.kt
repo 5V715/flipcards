@@ -7,6 +7,7 @@ import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.play.Session
 import dev.silas.flipcards.play.SessionResult
 import dev.silas.flipcards.play.Slot
+import dev.silas.flipcards.samples.Sample
 
 /** Everything the UI shows. The screens are pure functions of this. */
 data class AppState(
@@ -24,7 +25,8 @@ data class SideRef(val cardId: String, val face: Face)
 sealed interface Screen {
     data object Loading : Screen
 
-    data class StackList(val stacks: List<StackSummary>) : Screen
+    /** [samples] is the list of sample stacks, while it is open. */
+    data class StackList(val stacks: List<StackSummary>, val samples: SamplesPanel? = null) : Screen
 
     data class Editor(
         val stack: Stack,
@@ -44,6 +46,17 @@ sealed interface Screen {
     ) : Screen
 
     data class NotFound(val message: String) : Screen
+}
+
+sealed interface SamplesPanel {
+    data object Loading : SamplesPanel
+
+    /** [adding] and [added] hold file names: samples being downloaded, and samples added since the list opened. */
+    data class Loaded(
+        val samples: List<Sample>,
+        val adding: Set<String> = emptySet(),
+        val added: Set<String> = emptySet(),
+    ) : SamplesPanel
 }
 
 sealed interface PlayPhase {

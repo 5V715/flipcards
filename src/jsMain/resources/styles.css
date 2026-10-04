@@ -195,7 +195,10 @@ fieldset {
     gap: var(--gap);
 }
 
-.play-bar { flex-wrap: wrap; }
+.top-bar, .play-bar { flex-wrap: wrap; }
+
+/* The app name next to the language picker moves the picker to the next line rather than break. */
+.top-bar h1 { overflow-wrap: normal; }
 
 .top-bar a:not(.button) {
     display: inline-flex;
@@ -211,7 +214,7 @@ fieldset {
     gap: var(--gap);
 }
 
-.stack, .card-editor, .languages {
+.stack, .card-editor, .languages, .samples {
     display: flex;
     flex-direction: column;
     gap: var(--gap);
@@ -220,6 +223,23 @@ fieldset {
     border: 1px solid var(--border);
     border-radius: var(--radius);
 }
+
+.sample-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sample {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap);
+}
+
+.sample h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.samples-source { font-size: 0.875rem; }
+.added { color: var(--ok); font-weight: 600; }
 
 /* Editor */
 

@@ -13,6 +13,15 @@ class FakeEnv(override val storage: InMemoryStorage = InMemoryStorage()) : Env {
 
     override fun newId(): String = "id${++ids}"
 
+    /** What fetchText answers, by URL; any other URL fails like a network error. */
+    val web = mutableMapOf<String, String>()
+    val fetched = mutableListOf<String>()
+
+    override suspend fun fetchText(url: String): String {
+        fetched += url
+        return web[url] ?: throw IllegalStateException("offline")
+    }
+
     override fun download(fileName: String, text: String) {
         downloads += fileName to text
     }

@@ -5,11 +5,17 @@ import dev.silas.flipcards.i18n.Strings
 import dev.silas.flipcards.i18n.uiLanguageOf
 import dev.silas.flipcards.i18n.uiLanguages
 import dev.silas.flipcards.model.StackSummary
+import dev.silas.flipcards.samples.SAMPLES_FOLDER_URL
+import dev.silas.flipcards.samples.Sample
 import dev.silas.flipcards.state.DeleteStackConfirmed
 import dev.silas.flipcards.state.ExportRequested
 import dev.silas.flipcards.state.ImportFileRead
 import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.Route
+import dev.silas.flipcards.state.SampleChosen
+import dev.silas.flipcards.state.SamplesClosed
+import dev.silas.flipcards.state.SamplesPanel
+import dev.silas.flipcards.state.SamplesRequested
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.UiLanguageChosen
 import dev.silas.flipcards.state.toHash
@@ -25,6 +31,7 @@ import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.h2
+import kotlinx.html.h3
 import kotlinx.html.id
 import kotlinx.html.input
 import kotlinx.html.js.onChangeFunction
@@ -33,7 +40,9 @@ import kotlinx.html.label
 import kotlinx.html.li
 import kotlinx.html.option
 import kotlinx.html.p
+import kotlinx.html.section
 import kotlinx.html.select
+import kotlinx.html.span
 import kotlinx.html.ul
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -74,7 +83,16 @@ fun FlowContent.stackListView(
                 }
             }
         }
+        button {
+            type = ButtonType.button
+            id = "samples-toggle"
+            attributes["aria-expanded"] = (screen.samples != null).toString()
+            attributes["aria-controls"] = "samples"
+            +strings.samples
+            onClickFunction = { dispatch(if (screen.samples == null) SamplesRequested else SamplesClosed) }
+        }
     }
+    screen.samples?.let { samplesPanel(it, strings, dispatch) }
     if (screen.stacks.isEmpty()) {
         p("empty") { +strings.noStacks }
     } else {
@@ -104,6 +122,53 @@ private fun FlowContent.uiLanguageSelect(uiLanguage: String, strings: Strings, d
             }
             onChangeFunction = { dispatch(UiLanguageChosen((it.target as HTMLSelectElement).value)) }
         }
+    }
+}
+
+/** The stack files in the repository's samples folder, each with a button that adds it. */
+private fun FlowContent.samplesPanel(panel: SamplesPanel, strings: Strings, dispatch: Dispatch) {
+    section("samples") {
+        id = "samples"
+        attributes["aria-live"] = "polite"
+        h2 { +strings.samplesTitle }
+        a(href = SAMPLES_FOLDER_URL, classes = "samples-source") {
+            target = "_blank"
+            rel = "noopener"
+            +strings.samplesSource
+        }
+        when (panel) {
+            SamplesPanel.Loading -> p("loading") { +strings.loadingSamples }
+            is SamplesPanel.Loaded ->
+                if (panel.samples.isEmpty()) {
+                    p("empty") { +strings.noSamples }
+                } else {
+                    ul("sample-list") {
+                        panel.samples.forEach { sample -> li("sample") { sampleItem(sample, panel, strings, dispatch) } }
+                    }
+                }
+        }
+    }
+}
+
+private fun LI.sampleItem(sample: Sample, panel: SamplesPanel.Loaded, strings: Strings, dispatch: Dispatch) {
+    val adding = sample.fileName in panel.adding
+    div("stack-info") {
+        h3 { +sample.title }
+        p("stack-meta") {
+            +"${(sample.size + 1023) / 1024} KB"
+            if (sample.fileName in panel.added) {
+                +" · "
+                span("added") { +"✓ ${strings.added}" }
+            }
+        }
+    }
+    button(classes = "primary") {
+        type = ButtonType.button
+        id = "add-sample-${sample.fileName}"
+        // aria-disabled keeps the focus on the button while it downloads; a second click is ignored.
+        if (adding) attributes["aria-disabled"] = "true"
+        +(if (adding) strings.adding else strings.add)
+        onClickFunction = { if (!adding) dispatch(SampleChosen(sample)) }
     }
 }
 

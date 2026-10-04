@@ -99,6 +99,12 @@ fun loadStoredUiLanguage(): String? {
 class BrowserEnv(override val storage: Storage) : Env {
     override fun newId(): String = dev.silas.flipcards.browser.newId()
 
+    override suspend fun fetchText(url: String): String {
+        val response = window.fetch(url).await()
+        if (!response.ok) throw IllegalStateException("HTTP ${response.status}")
+        return response.text().await()
+    }
+
     override fun download(fileName: String, text: String) = downloadText(fileName, text)
 
     override fun navigate(route: Route) {

@@ -1,11 +1,15 @@
 package dev.silas.flipcards.effects
 
+import dev.silas.flipcards.i18n.English
+import dev.silas.flipcards.i18n.German
 import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.model.summary
+import dev.silas.flipcards.samples.SAMPLES_LISTING_URL
+import dev.silas.flipcards.samples.Sample
 import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AppState
@@ -24,6 +28,9 @@ import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayLoaded
 import dev.silas.flipcards.state.Route
+import dev.silas.flipcards.state.SampleChosen
+import dev.silas.flipcards.state.SamplesPanel
+import dev.silas.flipcards.state.SamplesRequested
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.SessionStarted
 import dev.silas.flipcards.state.StackListLoaded
@@ -301,5 +308,70 @@ class EffectsTest {
         assertTrue(ErrorRaised("Could not save: full") in h.dispatched)
         assertTrue(h.current.screen is Screen.StackList)
         assertEquals("Could not save: full", h.current.error)
+    }
+
+    private val sample = Sample("alpha.flipcards.json", "https://raw.example/alpha.flipcards.json", 100)
+
+    private val listing = """[{"name": "alpha.flipcards.json", "type": "file", "size": 100, "download_url": "${sample.url}"}]"""
+
+    private fun TestScope.onTheList() = harness().apply {
+        run(Navigate(Route.Home))
+        advanceUntilIdle()
+        dispatched.clear()
+    }
+
+    /** On the list, with the samples panel open and listing [sample]. */
+    private fun TestScope.withSamples() = onTheList().apply {
+        env.web[SAMPLES_LISTING_URL] = listing
+        run(SamplesRequested)
+        advanceUntilIdle()
+    }
+
+    @Test fun samplesAreListedFromTheRepository() = runTest {
+        val h = onTheList()
+        h.env.web[SAMPLES_LISTING_URL] = listing
+        h.run(SamplesRequested)
+        assertEquals(SamplesPanel.Loading, (h.current.screen as Screen.StackList).samples)
+        advanceUntilIdle()
+        assertEquals(SamplesPanel.Loaded(listOf(sample)), (h.current.screen as Screen.StackList).samples)
+    }
+
+    @Test fun samplesOffline() = runTest {
+        val h = onTheList()
+        h.run(SamplesRequested)
+        advanceUntilIdle()
+        assertEquals(null, (h.current.screen as Screen.StackList).samples)
+        assertEquals(English.samplesUnavailable, h.current.error)
+    }
+
+    @Test fun addingASampleImportsIt() = runTest {
+        val h = withSamples()
+        h.env.web[sample.url] = encodeExport(buildExport(stackA.copy(name = "Sample stack"), mapOf("i1" to url)))
+        h.run(SampleChosen(sample))
+        val adding = ((h.current.screen as Screen.StackList).samples as SamplesPanel.Loaded).adding
+        assertEquals(setOf(sample.fileName), adding)
+        advanceUntilIdle()
+        assertTrue(h.storage.stacks.values.any { it.name == "Sample stack" })
+        val list = h.current.screen as Screen.StackList
+        assertEquals(2, list.stacks.size)
+        assertEquals(SamplesPanel.Loaded(listOf(sample), added = setOf(sample.fileName)), list.samples)
+    }
+
+    @Test fun aSampleThatFailsToDownloadIsNotLeftAdding() = runTest {
+        val h = withSamples()
+        h.run(UiLanguageChosen("de"))
+        h.run(SampleChosen(sample))
+        advanceUntilIdle()
+        assertEquals(SamplesPanel.Loaded(listOf(sample)), (h.current.screen as Screen.StackList).samples)
+        assertEquals(German.sampleDownloadFailed, h.current.error)
+    }
+
+    @Test fun aSampleThatIsNotAStackShowsWhy() = runTest {
+        val h = withSamples()
+        h.env.web[sample.url] = "{}"
+        h.run(SampleChosen(sample))
+        advanceUntilIdle()
+        assertEquals(SamplesPanel.Loaded(listOf(sample)), (h.current.screen as Screen.StackList).samples)
+        assertEquals("This is not a Flipcards stack file.", h.current.error)
     }
 }

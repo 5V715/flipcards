@@ -23,7 +23,11 @@ snap cannot read `/tmp`.
 
 ## Sample stacks
 
-`samples/` has three stacks to import:
+`samples/` has three stacks. In the app, `Samples` on the stack list shows every
+`.flipcards.json` file in the `samples/` folder on the `main` branch on GitHub, and `Add` imports
+one. A file pushed there shows up the next time the list is opened, without a new release of the
+app. The list comes from GitHub's API, which allows 60 requests an hour per network without a login.
+The files can also be imported by hand:
 
 - `country-shapes.flipcards.json`: the outlines of 165 countries, answer with the name, in English,
   German, French or Spanish. Pick how many cards to play in the setup.
@@ -72,6 +76,7 @@ hand in the browser's responsive design mode at 320 px, 390 px and 1280 px width
 Stack list
 
 - [ ] Picking `Deutsch` turns every label into German, also after a reload.
+- [ ] `Samples` lists the stack files in `samples/` on `main`. `Add` shows `Adding…`, then `✓ Added`, and the stack appears below. Offline, a message says the list could not be loaded.
 - [ ] With no stacks, the empty message shows. `New stack` opens the editor; going back shows `New stack`, `0 cards · en`.
 - [ ] `Export` downloads `new-stack.flipcards.json`; importing that file adds `New stack (2)`.
 - [ ] Importing any other `.json` file shows `This is not a Flipcards stack file.`, and `Dismiss` removes it.

@@ -9,6 +9,9 @@ interface Env {
 
     fun newId(): String
 
+    /** Downloads the text at [url]. Throws when there is no answer or the answer is an error. */
+    suspend fun fetchText(url: String): String
+
     /** Offers [text] to the user as a file download. */
     fun download(fileName: String, text: String)
 

@@ -53,7 +53,10 @@ data class ImageChosen(val cardId: String, val face: Face, val imageId: String, 
 data class ImageRemoved(val cardId: String, val face: Face) : EditorAction
 data class ImageRejected(val cardId: String, val face: Face) : EditorAction
 data class ImageSaveFailed(val cardId: String, val face: Face, val imageId: String) : EditorAction
-data class StackSaved(val stack: Stack) : EditorAction
+/** Silent, because a re-render while the user is still typing would take the focus away. */
+data class StackSaved(val stack: Stack) : EditorAction {
+    override val silent get() = true
+}
 data class StackSaveFailed(val message: String) : EditorAction
 
 // Play

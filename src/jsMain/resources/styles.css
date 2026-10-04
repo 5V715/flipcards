@@ -432,8 +432,10 @@ fieldset.side {
     height: 1.5em;
 }
 
-.slot.blank { border-bottom: 3px solid var(--muted); }
-.slot.blank.filled { border-bottom-color: var(--text); font-weight: 600; }
+/* Every slot has the same underline and weight, so given and typed letters sit on one line. */
+.slot { border-bottom: 3px solid transparent; font-weight: 600; }
+.slot.blank { border-bottom-color: var(--muted); }
+.slot.blank.filled { border-bottom-color: var(--text); }
 .answer-entry:focus-within .slot.current { border-bottom-color: var(--primary); animation: blink 1s steps(1) infinite; }
 .slot.fixed { color: var(--muted); }
 .slot.gap { width: 0.6em; }

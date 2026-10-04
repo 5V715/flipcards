@@ -31,6 +31,7 @@ import dev.silas.flipcards.state.StackMissing
 import dev.silas.flipcards.state.StackRenamed
 import dev.silas.flipcards.state.StackSaveFailed
 import dev.silas.flipcards.state.StackSaved
+import dev.silas.flipcards.state.UiLanguageChosen
 import dev.silas.flipcards.state.update
 import dev.silas.flipcards.transfer.buildExport
 import dev.silas.flipcards.transfer.encodeExport
@@ -244,25 +245,51 @@ class EffectsTest {
 
     @Test fun bestScoreIsLoadedAndSaved() = runTest {
         val h = harness()
-        h.env.bestScores["a"] = 5
+        h.env.bestScores["a"] = mapOf(1 to 5, 7 to 70)
         h.run(Navigate(Route.Play("a")))
         advanceUntilIdle()
-        assertEquals(5, (h.current.screen as Screen.Play).bestScore)
+        assertEquals(mapOf(1 to 5, 7 to 70), (h.current.screen as Screen.Play).bestScores)
         h.run(SessionStarted(1))
         h.run(AnswerSubmitted)
         h.run(CardGraded(true)) // the only card, known first time with hints: 10 points
-        assertEquals(10, h.env.bestScores["a"])
+        assertEquals(mapOf(1 to 10, 7 to 70), h.env.bestScores["a"])
     }
 
     @Test fun aLowerScoreKeepsTheBest() = runTest {
         val h = harness()
-        h.env.bestScores["a"] = 50
+        h.env.bestScores["a"] = mapOf(1 to 50)
         h.run(Navigate(Route.Play("a")))
         advanceUntilIdle()
         h.run(SessionStarted(1))
         h.run(AnswerSubmitted)
         h.run(CardGraded(true))
-        assertEquals(50, h.env.bestScores["a"])
+        assertEquals(mapOf(1 to 50), h.env.bestScores["a"])
+    }
+
+    @Test fun pickingAPlayLanguageSavesTheInterfaceLanguage() = runTest {
+        val h = harness()
+        h.run(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        h.run(PlayLanguageChosen("de"))
+        assertEquals("de", h.env.uiLanguage)
+        h.run(UiLanguageChosen("fr"))
+        assertEquals("fr", h.env.uiLanguage)
+    }
+
+    @Test fun messagesAreInTheInterfaceLanguage() = runTest {
+        val h = harness()
+        h.run(UiLanguageChosen("de"))
+        h.run(ImportFileRead("{}"))
+        advanceUntilIdle()
+        assertEquals(listOf<Action>(ErrorRaised("Das ist keine Flipcards-Stapeldatei.")), h.dispatched)
+    }
+
+    @Test fun aNewStackIsNamedInTheInterfaceLanguage() = runTest {
+        val h = harness(withStackA = false)
+        h.run(UiLanguageChosen("es"))
+        h.run(NewStackRequested)
+        advanceUntilIdle()
+        assertEquals("Nuevo mazo", h.storage.stacks.values.single().name)
     }
 
     @Test fun leavingTheEditorStillNavigatesWhenTheSaveFails() = runTest { // review I1

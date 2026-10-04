@@ -23,10 +23,25 @@ snap cannot read `/tmp`.
 
 ## Sample stacks
 
-`samples/` has two stacks to import, both with English and German:
+`samples/` has three stacks to import:
 
-- `european-capitals.flipcards.json`: flags and country names, answer with the capital
-- `spanish-basic-words.flipcards.json`: 30 everyday words, answer in Spanish
+- `country-shapes.flipcards.json`: the outlines of 165 countries, answer with the name, in English,
+  German, French or Spanish. Pick how many cards to play in the setup.
+- `european-capitals.flipcards.json`: flags and country names, answer with the capital, in English,
+  German, French or Spanish
+- `spanish-basic-words.flipcards.json`: 30 everyday words in English, German or French, answer in Spanish
+
+The country outlines come from [Natural Earth](https://www.naturalearthdata.com/) (public domain)
+through the [world-atlas](https://github.com/topojson/world-atlas) package. `samples/tools/` has the
+scripts that made the stack; how to run them is at the top of `country-shapes-svg.mjs`.
+
+## Languages
+
+The interface is in English, German, Spanish or French. It follows the language picked last, on the
+stack list or as the play language, and is remembered. Before the first pick it follows the browser.
+A play language without a translation, such as `it`, shows the interface in English. All the texts
+are in `src/commonMain/kotlin/dev/silas/flipcards/i18n/Strings.kt`; a new language is one more
+`Strings` there plus an entry in `uiLanguages`.
 
 ## How it is built
 
@@ -56,6 +71,7 @@ hand in the browser's responsive design mode at 320 px, 390 px and 1280 px width
 
 Stack list
 
+- [ ] Picking `Deutsch` turns every label into German, also after a reload.
 - [ ] With no stacks, the empty message shows. `New stack` opens the editor; going back shows `New stack`, `0 cards · en`.
 - [ ] `Export` downloads `new-stack.flipcards.json`; importing that file adds `New stack (2)`.
 - [ ] Importing any other `.json` file shows `This is not a Flipcards stack file.`, and `Dismiss` removes it.
@@ -75,11 +91,13 @@ Editor
 Play (use a stack with a flag card, a text card and an incomplete card)
 
 - [ ] Setup preselects the language used last time, also after a reload.
+- [ ] Picking `de` as the play language turns the whole interface German, also the stack list afterwards.
+- [ ] `Cards to play` starts at the number of complete cards. Setting it to 5 plays 5 random cards; `Play again` plays 5 again.
 - [ ] Each hint mode shows the expected blanks. The incomplete card never appears.
 - [ ] On every new card, typing fills the blanks straight away; on a phone, tapping the blanks opens the keyboard. Revealed letters and spaces are skipped, Backspace removes the last letter. Enter reveals. Typing `bogota` for `Bogotá` gives `Looks right`, and Enter then accepts `Knew it`.
 - [ ] With `No hint`, the typed answer appears on one line with a caret.
 - [ ] `Also show on the front` set to `de` shows the German text under the front text, and nothing extra when both read the same.
-- [ ] Each card known the first time scores 10, 20 or 30 points, by hint mode. After a full round the summary shows `New best score!` when it beat the best, and setup shows `Best score`, also after a reload. `Play missed cards only` never changes the best score.
+- [ ] Each card known the first time scores 10, 20 or 30 points, by hint mode. After a round the summary shows `New best score!` when it beat the best for that number of cards, and setup shows `Best score` for the chosen number, also after a reload. `Play missed cards only` never changes the best score.
 - [ ] A wrong answer puts the focus on `Didn't know`; choosing `Knew it` anyway works.
 - [ ] Switching the language in the middle of a card changes the hint and the revealed answer.
 - [ ] A missed card comes back. The summary counts it as missed, and `Play missed cards only` plays just that card.

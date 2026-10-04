@@ -14,6 +14,8 @@ data class AppState(
     val screen: Screen = Screen.Loading,
     /** Shown as a dismissible banner above the current screen. */
     val error: String? = null,
+    /** The language code the interface is shown in: the language the player picked last. */
+    val uiLanguage: String = "en",
 )
 
 /** One side of one card. */
@@ -37,15 +39,21 @@ sealed interface Screen {
         val stack: Stack,
         val images: Map<String, String>,
         val phase: PlayPhase,
-        /** The highest score of a full session of this stack, or null before the first one. */
-        val bestScore: Int? = null,
+        /** The highest score per number of cards played, for this stack. */
+        val bestScores: Map<Int, Int> = emptyMap(),
     ) : Screen
 
     data class NotFound(val message: String) : Screen
 }
 
 sealed interface PlayPhase {
-    data class Setup(val language: String, val mode: HintMode, val secondLanguage: String? = null) : PlayPhase
+    /** [cardCount] is how many cards to play; null for all. */
+    data class Setup(
+        val language: String,
+        val mode: HintMode,
+        val secondLanguage: String? = null,
+        val cardCount: Int? = null,
+    ) : PlayPhase
 
     /**
      * [hint] holds the slots the player types into; null when there are none (no hints, or an image answer).
@@ -56,6 +64,6 @@ sealed interface PlayPhase {
     /** [typed] is the whole answer as the player entered it, with the slots filled in. */
     data class Revealed(val session: Session, val typed: String, val suggestion: Boolean?) : PlayPhase
 
-    /** [previousBest] is the best score before this session, to tell whether it was beaten. */
+    /** [previousBest] is the best score for this number of cards before this session, to tell whether it was beaten. */
     data class Summary(val result: SessionResult, val previousBest: Int? = null) : PlayPhase
 }

@@ -8,12 +8,14 @@ import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.state.Navigate
 import dev.silas.flipcards.state.Route
 import dev.silas.flipcards.ui.freshRoot
+import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.w3c.dom.EventInit
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
 import kotlin.test.Test
@@ -106,7 +108,42 @@ class StoreTest {
         button("Knew it").click()
         assertTrue("1 of 1 known first time" in root.textContent!!)
         assertTrue("New best score!" in root.textContent!!)
-        assertEquals(20, env.bestScores["a"])
+        assertEquals(mapOf(1 to 20), env.bestScores["a"])
+    }
+
+    @Test fun pickingALanguageTranslatesTheInterface() = runTest {
+        val env = FakeEnv()
+        env.storage.stacks["a"] = Stack(
+            "a", "Capitals", listOf("en", "de"),
+            listOf(Card("c1", Side(SideText.Same("Spain")), Side(SideText.Same("Madrid")))),
+        )
+        val root = newRoot()
+        val store = Store(root, env, this)
+        store.dispatch(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        assertTrue("Start" in root.textContent!!)
+
+        val select = root.querySelector("#play-language") as HTMLSelectElement
+        select.value = "de"
+        select.dispatchEvent(Event("change", EventInit(bubbles = true)))
+        assertTrue("Starten" in root.textContent!!)
+        assertTrue("Hinweise" in root.textContent!!)
+        assertEquals("de", document.documentElement?.getAttribute("lang"))
+        assertEquals("de", env.uiLanguage)
+
+        // Going back to the list keeps the language.
+        store.dispatch(Navigate(Route.Home))
+        advanceUntilIdle()
+        assertTrue("Neuer Stapel" in root.textContent!!)
+    }
+
+    @Test fun startsInTheStoredInterfaceLanguage() = runTest {
+        val env = FakeEnv()
+        env.uiLanguage = "fr"
+        val root = newRoot()
+        val store = Store(root, env, this)
+        assertEquals("fr", store.state.uiLanguage)
+        assertTrue("Chargement…" in root.textContent!!)
     }
 
     @Test fun typingUpdatesTheIncompleteBadge() = runTest { // review I3

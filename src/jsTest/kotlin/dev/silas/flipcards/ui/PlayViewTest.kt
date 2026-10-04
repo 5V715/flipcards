@@ -13,6 +13,7 @@ import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AnswerTyped
 import dev.silas.flipcards.state.AppState
+import dev.silas.flipcards.state.CardCountChosen
 import dev.silas.flipcards.state.CardGraded
 import dev.silas.flipcards.state.HintModeChosen
 import dev.silas.flipcards.state.PlayLanguageChosen
@@ -47,8 +48,18 @@ class PlayViewTest {
         ),
     )
 
-    private fun play(phase: PlayPhase, stack: Stack = this.stack, bestScore: Int? = null) =
-        mount(AppState(Route.Play(stack.id), Screen.Play(stack, mapOf("i" to flag, "j" to map), phase, bestScore)))
+    private fun play(
+        phase: PlayPhase,
+        stack: Stack = this.stack,
+        bestScores: Map<Int, Int> = emptyMap(),
+        uiLanguage: String = "en",
+    ) = mount(
+        AppState(
+            Route.Play(stack.id),
+            Screen.Play(stack, mapOf("i" to flag, "j" to map), phase, bestScores),
+            uiLanguage = uiLanguage,
+        ),
+    )
 
     private fun session(cardId: String, language: String = "en", secondLanguage: String? = null) =
         startSession(listOf(cardId), language, HintMode.LENGTH_ONLY, 1, secondLanguage)
@@ -91,7 +102,46 @@ class PlayViewTest {
     }
 
     @Test fun setupShowsTheBestScore() =
-        assertEquals("Best score: 120", play(PlayPhase.Setup("en", HintMode.HINTED), bestScore = 120).one(".best").textContent)
+        assertEquals(
+            "Best score: 120",
+            play(PlayPhase.Setup("en", HintMode.HINTED), bestScores = mapOf(3 to 120)).one(".best").textContent,
+        )
+
+    @Test fun setupShowsTheBestScoreForTheChosenCardCount() {
+        val scores = mapOf(3 to 120, 2 to 40)
+        fun setupFor(count: Int) = play(PlayPhase.Setup("en", HintMode.HINTED, cardCount = count), bestScores = scores)
+        assertEquals("Best score: 40", setupFor(2).one(".best").textContent)
+        assertFalse(setupFor(1).exists(".best"))
+    }
+
+    @Test fun cardCountDefaultsToAllAndCanBeChanged() {
+        val page = play(PlayPhase.Setup("en", HintMode.HINTED))
+        val count = page.field("Cards to play") as HTMLInputElement
+        assertEquals("3", count.value) // the complete cards a, b and c
+        assertEquals("3", count.max)
+        assertTrue("of 3" in page.text)
+        count.value = "2"
+        count.dispatchEvent(Event("change", EventInit(bubbles = true)))
+        count.value = "abc"
+        count.dispatchEvent(Event("change", EventInit(bubbles = true)))
+        assertEquals(listOf<Action>(CardCountChosen(2)), page.dispatched)
+        val two = play(PlayPhase.Setup("en", HintMode.HINTED, cardCount = 2))
+        assertEquals("2", (two.field("Cards to play") as HTMLInputElement).value)
+    }
+
+    @Test fun labelsFollowTheInterfaceLanguage() {
+        val german = play(PlayPhase.Setup("de", HintMode.HINTED), uiLanguage = "de")
+        assertTrue(german.hasButton("Starten"))
+        assertTrue("Hinweise" in german.text)
+        assertTrue("Anzahl Karten" in german.text)
+        val result = SessionResult("en", HintMode.HINTED, 3, listOf("a"), score = 20)
+        val spanish = play(PlayPhase.Summary(result), uiLanguage = "es")
+        assertEquals("2 de 3 acertadas a la primera", spanish.one("h1").textContent)
+        assertTrue(spanish.hasButton("Jugar otra vez"))
+        assertEquals("(imagen) → Vienna", spanish.one("li.missed").textContent)
+        // Without a translation, English.
+        assertTrue(play(PlayPhase.Setup("en", HintMode.HINTED), uiLanguage = "it").hasButton("Start"))
+    }
 
     @Test fun secondLanguageCanBeChosenAndCleared() {
         val page = play(PlayPhase.Setup("en", HintMode.HINTED, secondLanguage = "de"))
@@ -267,15 +317,15 @@ class PlayViewTest {
 
     @Test fun summaryBelowTheBest() {
         val result = SessionResult("en", HintMode.NONE, 3, listOf("a"), score = 60)
-        val page = play(PlayPhase.Summary(result, previousBest = 90), bestScore = 90)
+        val page = play(PlayPhase.Summary(result, previousBest = 90), bestScores = mapOf(3 to 90))
         assertEquals("Score: 60 of 90", page.one(".score").textContent)
         assertEquals("Best score: 90", page.one(".best").textContent)
     }
 
     @Test fun summaryOfSomeCardsDoesNotCompete() {
         val result = SessionResult("en", HintMode.NONE, 1, emptyList(), score = 30, countsForBest = false)
-        val page = play(PlayPhase.Summary(result, previousBest = 10), bestScore = 10)
-        assertEquals("Only rounds with all cards count for the best score.", page.one(".best").textContent)
+        val page = play(PlayPhase.Summary(result, previousBest = 10), bestScores = mapOf(1 to 10))
+        assertEquals("Rounds with only the missed cards do not count for the best score.", page.one(".best").textContent)
     }
 
     @Test fun choosingAHintModeKeepsTheFocusOnIt() { // review I4

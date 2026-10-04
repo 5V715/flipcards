@@ -1,0 +1,492 @@
+package dev.silas.flipcards.i18n
+
+/**
+ * Every text the app shows, in one language. The interface follows the language the player
+ * picked last; [stringsFor] falls back to English for languages without a translation.
+ */
+class Strings(
+    // Everywhere
+    val loading: String,
+    val dismiss: String,
+    val backToStacks: String,
+    val stacksLink: String,
+    val play: String,
+    val delete: String,
+    val language: String,
+    val pageNotFound: String,
+    val stackMissing: String,
+    val storageUnavailable: String,
+
+    // Stack list
+    val newStack: String,
+    val import: String,
+    val noStacks: String,
+    val cards: (Int) -> String,
+    val edit: String,
+    val export: String,
+    val confirmDeleteStack: (String) -> String,
+    /** The name of a stack made with "New stack". */
+    val newStackName: String,
+
+    // Editor
+    val editStack: String,
+    val stackName: String,
+    val saved: String,
+    val notSaved: String,
+    val languages: String,
+    val removeLanguage: (String) -> String,
+    val confirmRemoveLanguage: (String) -> String,
+    val languageCodePlaceholder: String,
+    val languageCode: String,
+    val addLanguage: String,
+    val cardNumber: (Int) -> String,
+    val incomplete: String,
+    val moveUp: String,
+    val moveDown: String,
+    val confirmDeleteCard: String,
+    val addCard: String,
+    val front: String,
+    val back: String,
+    val translated: String,
+    val text: String,
+    /** Asked before one text for all languages replaces the translations in these languages. */
+    val confirmOneText: (List<String>) -> String,
+    val chooseImage: String,
+    val removeImage: String,
+    val imageUnreadable: String,
+
+    // Play
+    val hints: String,
+    val hinted: String,
+    val lengthOnly: String,
+    val noHint: String,
+    val alsoOnFront: String,
+    val nothing: String,
+    val cardsToPlay: String,
+    val ofCards: (Int) -> String,
+    val noCompleteCards: String,
+    val openEditor: String,
+    val start: String,
+    val left: (Int, Int) -> String,
+    val score: (Int) -> String,
+    val yourAnswerLabel: String,
+    val yourAnswerLetters: (Int) -> String,
+    val showAnswer: String,
+    val yourAnswer: (String) -> String,
+    val looksRight: String,
+    val looksDifferent: String,
+    val knewIt: String,
+    val didntKnow: String,
+    val knownFirstTime: (Int, Int) -> String,
+    val finalScore: (Int, Int) -> String,
+    val newBest: String,
+    val bestScore: (Int) -> String,
+    val missedOnlyDoesNotCount: String,
+    val missedCards: String,
+    val playAgain: String,
+    val playMissedOnly: String,
+    val image: String,
+
+    // Errors
+    val couldNotSave: (String) -> String,
+    val storageError: (String) -> String,
+    val couldNotStoreImage: String,
+    val importProblem: (ImportProblem, Int?) -> String,
+)
+
+/** Why a file could not be imported. [Int] in the messages is the card number, where there is one. */
+enum class ImportProblem {
+    NOT_A_STACK_FILE, NEWER_VERSION, NO_NAME, NO_LANGUAGES, INVALID_LANGUAGES,
+    CARD_INCOMPLETE, CARD_MISSING_IMAGE, INVALID_IMAGE,
+}
+
+val English = Strings(
+    loading = "Loading…",
+    dismiss = "Dismiss",
+    backToStacks = "Back to stacks",
+    stacksLink = "← Stacks",
+    play = "Play",
+    delete = "Delete",
+    language = "Language",
+    pageNotFound = "Page not found.",
+    stackMissing = "This stack does not exist.",
+    storageUnavailable = "Flipcards needs local storage (IndexedDB), which is not available in this browser mode.",
+    newStack = "New stack",
+    import = "Import",
+    noStacks = "No stacks yet. Create one or import a file.",
+    cards = { n -> if (n == 1) "1 card" else "$n cards" },
+    edit = "Edit",
+    export = "Export",
+    confirmDeleteStack = { name -> "Delete \"$name\" and all its cards?" },
+    newStackName = "New stack",
+    editStack = "Edit stack",
+    stackName = "Stack name",
+    saved = "Saved",
+    notSaved = "Not saved",
+    languages = "Languages",
+    removeLanguage = { code -> "Remove $code" },
+    confirmRemoveLanguage = { code -> "Remove language \"$code\"? Its texts are deleted from every card." },
+    languageCodePlaceholder = "Language code, e.g. de",
+    languageCode = "Language code",
+    addLanguage = "Add language",
+    cardNumber = { n -> "Card $n" },
+    incomplete = "Incomplete",
+    moveUp = "Move up",
+    moveDown = "Move down",
+    confirmDeleteCard = "Delete this card?",
+    addCard = "Add card",
+    front = "Front",
+    back = "Back",
+    translated = "Translated",
+    text = "Text",
+    confirmOneText = { lost ->
+        "Use one text for all languages? " +
+            (if (lost.size == 1) "The text for " else "The texts for ") +
+            lost.joinToString(", ") + (if (lost.size == 1) " is deleted." else " are deleted.")
+    },
+    chooseImage = "Choose image",
+    removeImage = "Remove image",
+    imageUnreadable = "This file is not an image the browser can read.",
+    hints = "Hints",
+    hinted = "Hinted",
+    lengthOnly = "Length only",
+    noHint = "No hint",
+    alsoOnFront = "Also show on the front",
+    nothing = "Nothing",
+    cardsToPlay = "Cards to play",
+    ofCards = { n -> "of $n" },
+    noCompleteCards = "This stack has no complete cards yet.",
+    openEditor = "Open the editor",
+    start = "Start",
+    left = { left, total -> "$left of $total left" },
+    score = { n -> "Score $n" },
+    yourAnswerLabel = "Your answer",
+    yourAnswerLetters = { n -> "Your answer, $n letters" },
+    showAnswer = "Show answer",
+    yourAnswer = { typed -> "Your answer: $typed" },
+    looksRight = "Looks right",
+    looksDifferent = "Looks different",
+    knewIt = "Knew it",
+    didntKnow = "Didn't know",
+    knownFirstTime = { known, total -> "$known of $total known first time" },
+    finalScore = { score, max -> "Score: $score of $max" },
+    newBest = "New best score!",
+    bestScore = { n -> "Best score: $n" },
+    missedOnlyDoesNotCount = "Rounds with only the missed cards do not count for the best score.",
+    missedCards = "Missed cards",
+    playAgain = "Play again",
+    playMissedOnly = "Play missed cards only",
+    image = "(image)",
+    couldNotSave = { detail -> "Could not save: $detail" },
+    storageError = { detail -> "Storage error: $detail" },
+    couldNotStoreImage = "Could not store the image.",
+    importProblem = { problem, card ->
+        when (problem) {
+            ImportProblem.NOT_A_STACK_FILE -> "This is not a Flipcards stack file."
+            ImportProblem.NEWER_VERSION -> "This file was made by a newer version of the app."
+            ImportProblem.NO_NAME -> "The stack has no name."
+            ImportProblem.NO_LANGUAGES -> "The stack has no languages."
+            ImportProblem.INVALID_LANGUAGES -> "The stack has invalid language codes."
+            ImportProblem.CARD_INCOMPLETE -> "Card $card is incomplete."
+            ImportProblem.CARD_MISSING_IMAGE -> "Card $card refers to a missing image."
+            ImportProblem.INVALID_IMAGE -> "The file contains invalid image data."
+        }
+    },
+)
+
+val German = Strings(
+    loading = "Wird geladen…",
+    dismiss = "Schließen",
+    backToStacks = "Zurück zu den Stapeln",
+    stacksLink = "← Stapel",
+    play = "Spielen",
+    delete = "Löschen",
+    language = "Sprache",
+    pageNotFound = "Seite nicht gefunden.",
+    stackMissing = "Diesen Stapel gibt es nicht.",
+    storageUnavailable = "Flipcards braucht lokalen Speicher (IndexedDB), der in diesem Browsermodus nicht verfügbar ist.",
+    newStack = "Neuer Stapel",
+    import = "Importieren",
+    noStacks = "Noch keine Stapel. Lege einen an oder importiere eine Datei.",
+    cards = { n -> if (n == 1) "1 Karte" else "$n Karten" },
+    edit = "Bearbeiten",
+    export = "Exportieren",
+    confirmDeleteStack = { name -> "„$name“ und alle Karten darin löschen?" },
+    newStackName = "Neuer Stapel",
+    editStack = "Stapel bearbeiten",
+    stackName = "Name des Stapels",
+    saved = "Gespeichert",
+    notSaved = "Nicht gespeichert",
+    languages = "Sprachen",
+    removeLanguage = { code -> "$code entfernen" },
+    confirmRemoveLanguage = { code -> "Sprache „$code“ entfernen? Ihre Texte werden aus allen Karten gelöscht." },
+    languageCodePlaceholder = "Sprachcode, z. B. de",
+    languageCode = "Sprachcode",
+    addLanguage = "Sprache hinzufügen",
+    cardNumber = { n -> "Karte $n" },
+    incomplete = "Unvollständig",
+    moveUp = "Nach oben",
+    moveDown = "Nach unten",
+    confirmDeleteCard = "Diese Karte löschen?",
+    addCard = "Karte hinzufügen",
+    front = "Vorderseite",
+    back = "Rückseite",
+    translated = "Übersetzt",
+    text = "Text",
+    confirmOneText = { lost ->
+        "Einen Text für alle Sprachen verwenden? " +
+            (if (lost.size == 1) "Der Text für " else "Die Texte für ") +
+            lost.joinToString(", ") + (if (lost.size == 1) " wird gelöscht." else " werden gelöscht.")
+    },
+    chooseImage = "Bild wählen",
+    removeImage = "Bild entfernen",
+    imageUnreadable = "Diese Datei ist kein Bild, das der Browser lesen kann.",
+    hints = "Hinweise",
+    hinted = "Mit Buchstaben",
+    lengthOnly = "Nur Länge",
+    noHint = "Kein Hinweis",
+    alsoOnFront = "Auch auf der Vorderseite zeigen",
+    nothing = "Nichts",
+    cardsToPlay = "Anzahl Karten",
+    ofCards = { n -> "von $n" },
+    noCompleteCards = "Dieser Stapel hat noch keine vollständigen Karten.",
+    openEditor = "Editor öffnen",
+    start = "Starten",
+    left = { left, total -> "noch $left von $total" },
+    score = { n -> "Punkte $n" },
+    yourAnswerLabel = "Deine Antwort",
+    yourAnswerLetters = { n -> "Deine Antwort, $n Buchstaben" },
+    showAnswer = "Antwort zeigen",
+    yourAnswer = { typed -> "Deine Antwort: $typed" },
+    looksRight = "Sieht richtig aus",
+    looksDifferent = "Sieht anders aus",
+    knewIt = "Gewusst",
+    didntKnow = "Nicht gewusst",
+    knownFirstTime = { known, total -> "$known von $total beim ersten Mal gewusst" },
+    finalScore = { score, max -> "Punkte: $score von $max" },
+    newBest = "Neuer Rekord!",
+    bestScore = { n -> "Rekord: $n" },
+    missedOnlyDoesNotCount = "Runden nur mit den verpassten Karten zählen nicht für den Rekord.",
+    missedCards = "Verpasste Karten",
+    playAgain = "Noch einmal",
+    playMissedOnly = "Nur verpasste Karten spielen",
+    image = "(Bild)",
+    couldNotSave = { detail -> "Speichern fehlgeschlagen: $detail" },
+    storageError = { detail -> "Speicherfehler: $detail" },
+    couldNotStoreImage = "Das Bild konnte nicht gespeichert werden.",
+    importProblem = { problem, card ->
+        when (problem) {
+            ImportProblem.NOT_A_STACK_FILE -> "Das ist keine Flipcards-Stapeldatei."
+            ImportProblem.NEWER_VERSION -> "Diese Datei stammt von einer neueren Version der App."
+            ImportProblem.NO_NAME -> "Der Stapel hat keinen Namen."
+            ImportProblem.NO_LANGUAGES -> "Der Stapel hat keine Sprachen."
+            ImportProblem.INVALID_LANGUAGES -> "Der Stapel hat ungültige Sprachcodes."
+            ImportProblem.CARD_INCOMPLETE -> "Karte $card ist unvollständig."
+            ImportProblem.CARD_MISSING_IMAGE -> "Karte $card verweist auf ein fehlendes Bild."
+            ImportProblem.INVALID_IMAGE -> "Die Datei enthält ungültige Bilddaten."
+        }
+    },
+)
+
+val Spanish = Strings(
+    loading = "Cargando…",
+    dismiss = "Cerrar",
+    backToStacks = "Volver a los mazos",
+    stacksLink = "← Mazos",
+    play = "Jugar",
+    delete = "Eliminar",
+    language = "Idioma",
+    pageNotFound = "Página no encontrada.",
+    stackMissing = "Este mazo no existe.",
+    storageUnavailable = "Flipcards necesita almacenamiento local (IndexedDB), que no está disponible en este modo del navegador.",
+    newStack = "Nuevo mazo",
+    import = "Importar",
+    noStacks = "Todavía no hay mazos. Crea uno o importa un archivo.",
+    cards = { n -> if (n == 1) "1 tarjeta" else "$n tarjetas" },
+    edit = "Editar",
+    export = "Exportar",
+    confirmDeleteStack = { name -> "¿Eliminar «$name» y todas sus tarjetas?" },
+    newStackName = "Nuevo mazo",
+    editStack = "Editar mazo",
+    stackName = "Nombre del mazo",
+    saved = "Guardado",
+    notSaved = "Sin guardar",
+    languages = "Idiomas",
+    removeLanguage = { code -> "Quitar $code" },
+    confirmRemoveLanguage = { code -> "¿Quitar el idioma «$code»? Sus textos se eliminan de todas las tarjetas." },
+    languageCodePlaceholder = "Código de idioma, p. ej. es",
+    languageCode = "Código de idioma",
+    addLanguage = "Añadir idioma",
+    cardNumber = { n -> "Tarjeta $n" },
+    incomplete = "Incompleta",
+    moveUp = "Subir",
+    moveDown = "Bajar",
+    confirmDeleteCard = "¿Eliminar esta tarjeta?",
+    addCard = "Añadir tarjeta",
+    front = "Anverso",
+    back = "Reverso",
+    translated = "Traducido",
+    text = "Texto",
+    confirmOneText = { lost ->
+        "¿Usar un solo texto para todos los idiomas? " +
+            (if (lost.size == 1) "Se elimina el texto en " else "Se eliminan los textos en ") +
+            lost.joinToString(", ") + "."
+    },
+    chooseImage = "Elegir imagen",
+    removeImage = "Quitar imagen",
+    imageUnreadable = "Este archivo no es una imagen que el navegador pueda leer.",
+    hints = "Pistas",
+    hinted = "Con letras",
+    lengthOnly = "Solo longitud",
+    noHint = "Sin pista",
+    alsoOnFront = "Mostrar también en el anverso",
+    nothing = "Nada",
+    cardsToPlay = "Tarjetas a jugar",
+    ofCards = { n -> "de $n" },
+    noCompleteCards = "Este mazo todavía no tiene tarjetas completas.",
+    openEditor = "Abrir el editor",
+    start = "Empezar",
+    left = { left, total -> "quedan $left de $total" },
+    score = { n -> "Puntos $n" },
+    yourAnswerLabel = "Tu respuesta",
+    yourAnswerLetters = { n -> "Tu respuesta, $n letras" },
+    showAnswer = "Ver respuesta",
+    yourAnswer = { typed -> "Tu respuesta: $typed" },
+    looksRight = "Parece correcto",
+    looksDifferent = "Parece distinto",
+    knewIt = "La sabía",
+    didntKnow = "No la sabía",
+    knownFirstTime = { known, total -> "$known de $total acertadas a la primera" },
+    finalScore = { score, max -> "Puntos: $score de $max" },
+    newBest = "¡Nuevo récord!",
+    bestScore = { n -> "Récord: $n" },
+    missedOnlyDoesNotCount = "Las rondas solo con las tarjetas falladas no cuentan para el récord.",
+    missedCards = "Tarjetas falladas",
+    playAgain = "Jugar otra vez",
+    playMissedOnly = "Jugar solo las falladas",
+    image = "(imagen)",
+    couldNotSave = { detail -> "No se pudo guardar: $detail" },
+    storageError = { detail -> "Error de almacenamiento: $detail" },
+    couldNotStoreImage = "No se pudo guardar la imagen.",
+    importProblem = { problem, card ->
+        when (problem) {
+            ImportProblem.NOT_A_STACK_FILE -> "Este no es un archivo de mazo de Flipcards."
+            ImportProblem.NEWER_VERSION -> "Este archivo es de una versión más reciente de la app."
+            ImportProblem.NO_NAME -> "El mazo no tiene nombre."
+            ImportProblem.NO_LANGUAGES -> "El mazo no tiene idiomas."
+            ImportProblem.INVALID_LANGUAGES -> "El mazo tiene códigos de idioma no válidos."
+            ImportProblem.CARD_INCOMPLETE -> "La tarjeta $card está incompleta."
+            ImportProblem.CARD_MISSING_IMAGE -> "La tarjeta $card usa una imagen que falta."
+            ImportProblem.INVALID_IMAGE -> "El archivo contiene datos de imagen no válidos."
+        }
+    },
+)
+
+val French = Strings(
+    loading = "Chargement…",
+    dismiss = "Fermer",
+    backToStacks = "Retour aux paquets",
+    stacksLink = "← Paquets",
+    play = "Jouer",
+    delete = "Supprimer",
+    language = "Langue",
+    pageNotFound = "Page introuvable.",
+    stackMissing = "Ce paquet n'existe pas.",
+    storageUnavailable = "Flipcards a besoin du stockage local (IndexedDB), indisponible dans ce mode du navigateur.",
+    newStack = "Nouveau paquet",
+    import = "Importer",
+    noStacks = "Aucun paquet pour l'instant. Créez-en un ou importez un fichier.",
+    cards = { n -> if (n == 1) "1 carte" else "$n cartes" },
+    edit = "Modifier",
+    export = "Exporter",
+    confirmDeleteStack = { name -> "Supprimer « $name » et toutes ses cartes ?" },
+    newStackName = "Nouveau paquet",
+    editStack = "Modifier le paquet",
+    stackName = "Nom du paquet",
+    saved = "Enregistré",
+    notSaved = "Non enregistré",
+    languages = "Langues",
+    removeLanguage = { code -> "Retirer $code" },
+    confirmRemoveLanguage = { code -> "Retirer la langue « $code » ? Ses textes sont supprimés de toutes les cartes." },
+    languageCodePlaceholder = "Code de langue, p. ex. fr",
+    languageCode = "Code de langue",
+    addLanguage = "Ajouter la langue",
+    cardNumber = { n -> "Carte $n" },
+    incomplete = "Incomplète",
+    moveUp = "Monter",
+    moveDown = "Descendre",
+    confirmDeleteCard = "Supprimer cette carte ?",
+    addCard = "Ajouter une carte",
+    front = "Recto",
+    back = "Verso",
+    translated = "Traduit",
+    text = "Texte",
+    confirmOneText = { lost ->
+        "Utiliser un seul texte pour toutes les langues ? " +
+            (if (lost.size == 1) "Le texte en " else "Les textes en ") +
+            lost.joinToString(", ") + (if (lost.size == 1) " est supprimé." else " sont supprimés.")
+    },
+    chooseImage = "Choisir une image",
+    removeImage = "Retirer l'image",
+    imageUnreadable = "Ce fichier n'est pas une image lisible par le navigateur.",
+    hints = "Indices",
+    hinted = "Avec lettres",
+    lengthOnly = "Longueur seule",
+    noHint = "Sans indice",
+    alsoOnFront = "Afficher aussi au recto",
+    nothing = "Rien",
+    cardsToPlay = "Cartes à jouer",
+    ofCards = { n -> "sur $n" },
+    noCompleteCards = "Ce paquet n'a pas encore de carte complète.",
+    openEditor = "Ouvrir l'éditeur",
+    start = "Commencer",
+    left = { left, total -> "encore $left sur $total" },
+    score = { n -> "Score $n" },
+    yourAnswerLabel = "Votre réponse",
+    yourAnswerLetters = { n -> "Votre réponse, $n lettres" },
+    showAnswer = "Voir la réponse",
+    yourAnswer = { typed -> "Votre réponse : $typed" },
+    looksRight = "Semble juste",
+    looksDifferent = "Semble différent",
+    knewIt = "Je savais",
+    didntKnow = "Je ne savais pas",
+    knownFirstTime = { known, total -> "$known sur $total trouvées du premier coup" },
+    finalScore = { score, max -> "Score : $score sur $max" },
+    newBest = "Nouveau record !",
+    bestScore = { n -> "Record : $n" },
+    missedOnlyDoesNotCount = "Les manches avec seulement les cartes manquées ne comptent pas pour le record.",
+    missedCards = "Cartes manquées",
+    playAgain = "Rejouer",
+    playMissedOnly = "Rejouer les cartes manquées",
+    image = "(image)",
+    couldNotSave = { detail -> "Échec de l'enregistrement : $detail" },
+    storageError = { detail -> "Erreur de stockage : $detail" },
+    couldNotStoreImage = "Impossible d'enregistrer l'image.",
+    importProblem = { problem, card ->
+        when (problem) {
+            ImportProblem.NOT_A_STACK_FILE -> "Ce n'est pas un fichier de paquet Flipcards."
+            ImportProblem.NEWER_VERSION -> "Ce fichier provient d'une version plus récente de l'application."
+            ImportProblem.NO_NAME -> "Le paquet n'a pas de nom."
+            ImportProblem.NO_LANGUAGES -> "Le paquet n'a pas de langue."
+            ImportProblem.INVALID_LANGUAGES -> "Le paquet a des codes de langue non valides."
+            ImportProblem.CARD_INCOMPLETE -> "La carte $card est incomplète."
+            ImportProblem.CARD_MISSING_IMAGE -> "La carte $card renvoie à une image manquante."
+            ImportProblem.INVALID_IMAGE -> "Le fichier contient des données d'image non valides."
+        }
+    },
+)
+
+/** The interface languages, by code, with the name each language has for itself. */
+val uiLanguages: Map<String, Pair<String, Strings>> = linkedMapOf(
+    "en" to ("English" to English),
+    "de" to ("Deutsch" to German),
+    "es" to ("Español" to Spanish),
+    "fr" to ("Français" to French),
+)
+
+/** The strings for a language code such as "de" or "de-AT"; English when there is no translation. */
+fun stringsFor(code: String): Strings =
+    uiLanguages[code.lowercase().substringBefore('-')]?.second ?: English
+
+/** The interface language that [code] maps to, or null when there is none. */
+fun uiLanguageOf(code: String): String? = code.lowercase().substringBefore('-').takeIf { it in uiLanguages }

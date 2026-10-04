@@ -1,5 +1,6 @@
 package dev.silas.flipcards.effects
 
+import dev.silas.flipcards.i18n.stringsFor
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AppState
@@ -49,6 +50,9 @@ class Effects(
     private val dispatch: (Action) -> Unit,
 ) {
     private val storage get() = env.storage
+
+    /** Messages are in the interface language at the time they are shown. */
+    private val strings get() = stringsFor(state().uiLanguage)
     private var autosave: Job? = null
 
     fun handle(action: Action, before: AppState, after: AppState) {
@@ -65,7 +69,7 @@ class Effects(
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
-                            dispatch(ErrorRaised("Could not save: ${e.message}"))
+                            dispatch(ErrorRaised(strings.couldNotSave(e.message ?: "")))
                         }
                     }
                     load(action.route)
@@ -73,7 +77,7 @@ class Effects(
             }
 
             NewStackRequested -> launch {
-                val stack = Stack(env.newId(), "New stack", listOf("en"), emptyList())
+                val stack = Stack(env.newId(), strings.newStackName, listOf("en"), emptyList())
                 storage.saveStack(stack)
                 env.navigate(Route.Edit(stack.id))
             }
@@ -86,7 +90,7 @@ class Effects(
             is ExportRequested -> launch {
                 val stack = storage.loadStack(action.stackId)
                 if (stack == null) {
-                    dispatch(ErrorRaised("This stack does not exist."))
+                    dispatch(ErrorRaised(strings.stackMissing))
                 } else {
                     val file = buildExport(stack, storage.loadImages(stack.id))
                     env.download(exportFileName(stack.name), encodeExport(file))
@@ -128,12 +132,13 @@ class Effects(
         // A finished session that beat the best score: remember it.
         val playBefore = before.screen as? Screen.Play
         val playAfter = after.screen as? Screen.Play
-        val best = playAfter?.bestScore
-        if (playBefore != null && best != null && playBefore.stack.id == playAfter.stack.id &&
-            playBefore.bestScore != best
+        if (playBefore != null && playAfter != null && playBefore.stack.id == playAfter.stack.id &&
+            playBefore.bestScores != playAfter.bestScores
         ) {
-            env.saveBestScore(playAfter.stack.id, best)
+            env.saveBestScores(playAfter.stack.id, playAfter.bestScores)
         }
+
+        if (before.uiLanguage != after.uiLanguage) env.saveUiLanguage(after.uiLanguage)
     }
 
     private suspend fun load(route: Route) {
@@ -152,7 +157,7 @@ class Effects(
                         stack,
                         storage.loadImages(stack.id),
                         env.loadPlayLanguage(stack.id),
-                        env.loadBestScore(stack.id),
+                        env.loadBestScores(stack.id),
                     ),
                 )
             }
@@ -164,7 +169,7 @@ class Effects(
         val file = try {
             parseImport(text)
         } catch (e: ImportException) {
-            dispatch(ErrorRaised(e.message ?: "The file could not be imported."))
+            dispatch(ErrorRaised(strings.importProblem(e.problem, e.cardNumber)))
             return
         }
         val fresh = withFreshIds(file, env::newId)
@@ -186,7 +191,7 @@ class Effects(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                dispatch(StackSaveFailed("Could not save: ${e.message}"))
+                dispatch(StackSaveFailed(strings.couldNotSave(e.message ?: "")))
             }
         }
     }
@@ -199,7 +204,7 @@ class Effects(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                dispatch(ErrorRaised("Storage error: ${e.message}"))
+                dispatch(ErrorRaised(strings.storageError(e.message ?: "")))
             }
         }
     }

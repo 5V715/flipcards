@@ -2,6 +2,7 @@ package dev.silas.flipcards.ui
 
 import dev.silas.flipcards.browser.downscaleToJpegDataUrl
 import dev.silas.flipcards.browser.newId
+import dev.silas.flipcards.i18n.Strings
 import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.SideText
@@ -61,27 +62,27 @@ fun incompleteBadgeId(cardId: String): String = "incomplete-$cardId"
  * Brings the parts of the editor up to date that typing can change. Typing does not re-render
  * (the field would lose focus), so the store calls this after every silent action instead.
  */
-fun patchEditor(screen: Screen.Editor) {
-    document.getElementById(SAVE_STATUS_ID)?.textContent = saveStatusText(screen.saved)
+fun patchEditor(screen: Screen.Editor, strings: Strings) {
+    document.getElementById(SAVE_STATUS_ID)?.textContent = saveStatusText(screen.saved, strings)
     val first = screen.stack.languages.first()
     screen.stack.cards.forEach { card ->
         (document.getElementById(incompleteBadgeId(card.id)) as? HTMLElement)?.hidden = card.isComplete(first)
     }
 }
 
-fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: CoroutineScope) {
+fun FlowContent.editorView(screen: Screen.Editor, strings: Strings, dispatch: Dispatch, scope: CoroutineScope) {
     val stack = screen.stack
 
     div("top-bar") {
-        a(href = Route.Home.toHash()) { +"← Stacks" }
-        a(href = Route.Play(stack.id).toHash(), classes = "button primary") { +"Play" }
+        a(href = Route.Home.toHash()) { +strings.stacksLink }
+        a(href = Route.Play(stack.id).toHash(), classes = "button primary") { +strings.play }
     }
-    h1("visually-hidden") { +"Edit stack" }
+    h1("visually-hidden") { +strings.editStack }
 
     div("field") {
         label {
             htmlFor = "stack-name"
-            +"Stack name"
+            +strings.stackName
         }
         input(type = InputType.text) {
             id = "stack-name"
@@ -93,11 +94,11 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
     span("save-status") {
         id = SAVE_STATUS_ID
         attributes["aria-live"] = "polite"
-        +saveStatusText(screen.saved)
+        +saveStatusText(screen.saved, strings)
     }
 
     section("languages") {
-        h2 { +"Languages" }
+        h2 { +strings.languages }
         ul("chips") {
             stack.languages.forEach { code ->
                 li("chip") {
@@ -106,11 +107,10 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
                         button {
                             type = ButtonType.button
                             id = "remove-language-$code"
-                            attributes["aria-label"] = "Remove $code"
+                            attributes["aria-label"] = strings.removeLanguage(code)
                             +"×"
                             onClickFunction = {
-                                val question = "Remove language \"$code\"? Its texts are deleted from every card."
-                                if (window.confirm(question)) dispatch(LanguageRemoved(code))
+                                if (window.confirm(strings.confirmRemoveLanguage(code))) dispatch(LanguageRemoved(code))
                             }
                         }
                     }
@@ -126,14 +126,14 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
             }
             input(type = InputType.text) {
                 id = NEW_LANGUAGE_ID
-                placeholder = "Language code, e.g. de"
-                attributes["aria-label"] = "Language code"
+                placeholder = strings.languageCodePlaceholder
+                attributes["aria-label"] = strings.languageCode
                 attributes["autocapitalize"] = "off"
                 attributes["autocomplete"] = "off"
             }
             button {
                 type = ButtonType.submit
-                +"Add language"
+                +strings.addLanguage
             }
         }
     }
@@ -141,18 +141,18 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
     stack.cards.forEachIndexed { index, card ->
         section("card-editor") {
             div("card-header") {
-                h2 { +"Card ${index + 1}" }
+                h2 { +strings.cardNumber(index + 1) }
                 // Always present and hidden for complete cards, so patchEditor() can toggle it.
                 span("badge") {
                     id = incompleteBadgeId(card.id)
                     if (card.isComplete(stack.languages.first())) attributes["hidden"] = "hidden"
-                    +"Incomplete"
+                    +strings.incomplete
                 }
                 div("actions") {
                     button {
                         type = ButtonType.button
                         id = "${card.id}-up"
-                        attributes["aria-label"] = "Move up"
+                        attributes["aria-label"] = strings.moveUp
                         // aria-disabled, not disabled: the button stays focusable, so the focus is not
                         // lost when a card reaches the top. Moving past the end is ignored by update().
                         if (index == 0) attributes["aria-disabled"] = "true"
@@ -162,22 +162,22 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
                     button {
                         type = ButtonType.button
                         id = "${card.id}-down"
-                        attributes["aria-label"] = "Move down"
+                        attributes["aria-label"] = strings.moveDown
                         if (index == stack.cards.lastIndex) attributes["aria-disabled"] = "true"
                         +"↓"
                         onClickFunction = { dispatch(CardMoved(card.id, 1)) }
                     }
                     button(classes = "danger") {
                         type = ButtonType.button
-                        +"Delete"
+                        +strings.delete
                         onClickFunction = {
-                            if (window.confirm("Delete this card?")) dispatch(CardDeleted(card.id))
+                            if (window.confirm(strings.confirmDeleteCard)) dispatch(CardDeleted(card.id))
                         }
                     }
                 }
             }
             div("sides") {
-                Face.entries.forEach { face -> sideEditor(screen, card, face, dispatch, scope) }
+                Face.entries.forEach { face -> sideEditor(screen, card, face, strings, dispatch, scope) }
             }
         }
     }
@@ -186,7 +186,7 @@ fun FlowContent.editorView(screen: Screen.Editor, dispatch: Dispatch, scope: Cor
         button(classes = "primary") {
             type = ButtonType.button
             id = "add-card"
-            +"Add card"
+            +strings.addCard
             onClickFunction = { dispatch(CardAdded(newId())) }
         }
     }
@@ -196,6 +196,7 @@ private fun FlowContent.sideEditor(
     screen: Screen.Editor,
     card: Card,
     face: Face,
+    strings: Strings,
     dispatch: Dispatch,
     scope: CoroutineScope,
 ) {
@@ -223,7 +224,7 @@ private fun FlowContent.sideEditor(
 
     fieldSet("side") {
         attributes["data-face"] = face.name.lowercase()
-        legend { +(if (face == Face.FRONT) "Front" else "Back") }
+        legend { +(if (face == Face.FRONT) strings.front else strings.back) }
 
         label("checkbox") {
             input(type = InputType.checkBox) {
@@ -235,23 +236,20 @@ private fun FlowContent.sideEditor(
                     val lost = (text as? SideText.Translated)?.values.orEmpty()
                         .filter { (language, value) -> language != screen.stack.languages.first() && value.isNotBlank() }
                         .keys
-                    val question = "Use one text for all languages? " +
-                        (if (lost.size == 1) "The text for " else "The texts for ") +
-                        lost.joinToString(", ") + (if (lost.size == 1) " is deleted." else " are deleted.")
-                    if (checkbox.checked || lost.isEmpty() || window.confirm(question)) {
+                    if (checkbox.checked || lost.isEmpty() || window.confirm(strings.confirmOneText(lost.toList()))) {
                         dispatch(SideTextModeChanged(card.id, face, checkbox.checked))
                     } else {
                         checkbox.checked = true
                     }
                 }
             }
-            +"Translated"
+            +strings.translated
         }
 
         if (text is SideText.Translated) {
             screen.stack.languages.forEach { language -> textField(language, language, text.values[language] ?: "") }
         } else {
-            textField("Text", null, (text as? SideText.Same)?.value ?: "")
+            textField(strings.text, null, (text as? SideText.Same)?.value ?: "")
         }
 
         val imageUrl = side.imageId?.let { screen.images[it] }
@@ -259,7 +257,7 @@ private fun FlowContent.sideEditor(
 
         div("actions") {
             label("button file-button") {
-                +"Choose image"
+                +strings.chooseImage
                 input(type = InputType.file, classes = "visually-hidden") {
                     id = "$idPrefix-image"
                     accept = "image/*"
@@ -281,14 +279,14 @@ private fun FlowContent.sideEditor(
                 button {
                     type = ButtonType.button
                     id = "$idPrefix-remove-image"
-                    +"Remove image"
+                    +strings.removeImage
                     onClickFunction = { dispatch(ImageRemoved(card.id, face)) }
                 }
             }
         }
 
         if (screen.imageError == SideRef(card.id, face)) {
-            p("field-error") { +"This file is not an image the browser can read." }
+            p("field-error") { +strings.imageUnreadable }
         }
     }
 }

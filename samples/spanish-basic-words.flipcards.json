@@ -6,7 +6,8 @@
     "name": "Spanish basic words",
     "languages": [
       "en",
-      "de"
+      "de",
+      "fr"
     ],
     "cards": [
       {
@@ -16,7 +17,8 @@
             "type": "translated",
             "values": {
               "en": "hello",
-              "de": "hallo"
+              "de": "hallo",
+              "fr": "bonjour"
             }
           }
         },
@@ -34,7 +36,8 @@
             "type": "translated",
             "values": {
               "en": "goodbye",
-              "de": "tschüss"
+              "de": "tschüss",
+              "fr": "au revoir"
             }
           }
         },
@@ -52,7 +55,8 @@
             "type": "translated",
             "values": {
               "en": "please",
-              "de": "bitte"
+              "de": "bitte",
+              "fr": "s'il vous plaît"
             }
           }
         },
@@ -70,7 +74,8 @@
             "type": "translated",
             "values": {
               "en": "thank you",
-              "de": "danke"
+              "de": "danke",
+              "fr": "merci"
             }
           }
         },
@@ -88,7 +93,8 @@
             "type": "translated",
             "values": {
               "en": "yes",
-              "de": "ja"
+              "de": "ja",
+              "fr": "oui"
             }
           }
         },
@@ -106,7 +112,8 @@
             "type": "translated",
             "values": {
               "en": "no",
-              "de": "nein"
+              "de": "nein",
+              "fr": "non"
             }
           }
         },
@@ -124,7 +131,8 @@
             "type": "translated",
             "values": {
               "en": "house",
-              "de": "Haus"
+              "de": "Haus",
+              "fr": "maison"
             }
           }
         },
@@ -142,7 +150,8 @@
             "type": "translated",
             "values": {
               "en": "water",
-              "de": "Wasser"
+              "de": "Wasser",
+              "fr": "eau"
             }
           }
         },
@@ -160,7 +169,8 @@
             "type": "translated",
             "values": {
               "en": "bread",
-              "de": "Brot"
+              "de": "Brot",
+              "fr": "pain"
             }
           }
         },
@@ -178,7 +188,8 @@
             "type": "translated",
             "values": {
               "en": "milk",
-              "de": "Milch"
+              "de": "Milch",
+              "fr": "lait"
             }
           }
         },
@@ -196,7 +207,8 @@
             "type": "translated",
             "values": {
               "en": "apple",
-              "de": "Apfel"
+              "de": "Apfel",
+              "fr": "pomme"
             }
           }
         },
@@ -214,7 +226,8 @@
             "type": "translated",
             "values": {
               "en": "dog",
-              "de": "Hund"
+              "de": "Hund",
+              "fr": "chien"
             }
           }
         },
@@ -232,7 +245,8 @@
             "type": "translated",
             "values": {
               "en": "cat",
-              "de": "Katze"
+              "de": "Katze",
+              "fr": "chat"
             }
           }
         },
@@ -250,7 +264,8 @@
             "type": "translated",
             "values": {
               "en": "book",
-              "de": "Buch"
+              "de": "Buch",
+              "fr": "livre"
             }
           }
         },
@@ -268,7 +283,8 @@
             "type": "translated",
             "values": {
               "en": "friend",
-              "de": "Freund"
+              "de": "Freund",
+              "fr": "ami"
             }
           }
         },
@@ -286,7 +302,8 @@
             "type": "translated",
             "values": {
               "en": "family",
-              "de": "Familie"
+              "de": "Familie",
+              "fr": "famille"
             }
           }
         },
@@ -304,7 +321,8 @@
             "type": "translated",
             "values": {
               "en": "day",
-              "de": "Tag"
+              "de": "Tag",
+              "fr": "jour"
             }
           }
         },
@@ -322,7 +340,8 @@
             "type": "translated",
             "values": {
               "en": "night",
-              "de": "Nacht"
+              "de": "Nacht",
+              "fr": "nuit"
             }
           }
         },
@@ -340,7 +359,8 @@
             "type": "translated",
             "values": {
               "en": "sun",
-              "de": "Sonne"
+              "de": "Sonne",
+              "fr": "soleil"
             }
           }
         },
@@ -358,7 +378,8 @@
             "type": "translated",
             "values": {
               "en": "moon",
-              "de": "Mond"
+              "de": "Mond",
+              "fr": "lune"
             }
           }
         },
@@ -376,7 +397,8 @@
             "type": "translated",
             "values": {
               "en": "one",
-              "de": "eins"
+              "de": "eins",
+              "fr": "un"
             }
           }
         },
@@ -394,7 +416,8 @@
             "type": "translated",
             "values": {
               "en": "two",
-              "de": "zwei"
+              "de": "zwei",
+              "fr": "deux"
             }
           }
         },
@@ -412,7 +435,8 @@
             "type": "translated",
             "values": {
               "en": "three",
-              "de": "drei"
+              "de": "drei",
+              "fr": "trois"
             }
           }
         },
@@ -430,7 +454,8 @@
             "type": "translated",
             "values": {
               "en": "red",
-              "de": "rot"
+              "de": "rot",
+              "fr": "rouge"
             }
           }
         },
@@ -448,7 +473,8 @@
             "type": "translated",
             "values": {
               "en": "blue",
-              "de": "blau"
+              "de": "blau",
+              "fr": "bleu"
             }
           }
         },
@@ -466,7 +492,8 @@
             "type": "translated",
             "values": {
               "en": "green",
-              "de": "grün"
+              "de": "grün",
+              "fr": "vert"
             }
           }
         },
@@ -484,7 +511,8 @@
             "type": "translated",
             "values": {
               "en": "big",
-              "de": "groß"
+              "de": "groß",
+              "fr": "grand"
             }
           }
         },
@@ -502,7 +530,8 @@
             "type": "translated",
             "values": {
               "en": "small",
-              "de": "klein"
+              "de": "klein",
+              "fr": "petit"
             }
           }
         },
@@ -520,7 +549,8 @@
             "type": "translated",
             "values": {
               "en": "to eat",
-              "de": "essen"
+              "de": "essen",
+              "fr": "manger"
             }
           }
         },
@@ -538,7 +568,8 @@
             "type": "translated",
             "values": {
               "en": "to drink",
-              "de": "trinken"
+              "de": "trinken",
+              "fr": "boire"
             }
           }
         },

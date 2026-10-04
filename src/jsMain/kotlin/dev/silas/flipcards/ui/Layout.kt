@@ -1,5 +1,7 @@
 package dev.silas.flipcards.ui
 
+import dev.silas.flipcards.i18n.Strings
+import dev.silas.flipcards.i18n.stringsFor
 import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.ErrorDismissed
@@ -26,7 +28,7 @@ typealias Dispatch = (Action) -> Unit
 
 const val SAVE_STATUS_ID = "save-status"
 
-fun saveStatusText(saved: Boolean): String = if (saved) "Saved" else "Not saved"
+fun saveStatusText(saved: Boolean, strings: Strings): String = if (saved) strings.saved else strings.notSaved
 
 /** Replaces everything inside [root] with the screen for [state]. */
 fun render(root: HTMLElement, state: AppState, dispatch: Dispatch, scope: CoroutineScope) {
@@ -35,16 +37,18 @@ fun render(root: HTMLElement, state: AppState, dispatch: Dispatch, scope: Corout
     val focusedId = (document.activeElement as? HTMLElement)
         ?.takeIf { root.contains(it) }?.id?.takeIf { it.isNotEmpty() }
 
+    val strings = stringsFor(state.uiLanguage)
+    document.documentElement?.setAttribute("lang", state.uiLanguage)
     root.clear()
     root.append {
         main("page") {
-            state.error?.let { errorBanner(it, dispatch) }
+            state.error?.let { errorBanner(it, strings, dispatch) }
             when (val screen = state.screen) {
-                Screen.Loading -> p("loading") { +"Loading…" }
-                is Screen.StackList -> stackListView(screen, dispatch, scope)
-                is Screen.Editor -> editorView(screen, dispatch, scope)
-                is Screen.Play -> playView(screen, dispatch)
-                is Screen.NotFound -> notFound(screen.message)
+                Screen.Loading -> p("loading") { +strings.loading }
+                is Screen.StackList -> stackListView(screen, state.uiLanguage, strings, dispatch, scope)
+                is Screen.Editor -> editorView(screen, strings, dispatch, scope)
+                is Screen.Play -> playView(screen, strings, dispatch)
+                is Screen.NotFound -> notFound(screen.message, strings)
             }
         }
     }
@@ -53,30 +57,28 @@ fun render(root: HTMLElement, state: AppState, dispatch: Dispatch, scope: Corout
     (stillThere ?: root.querySelector("[data-autofocus]") as? HTMLElement)?.focus()
 }
 
-fun renderFatal(root: HTMLElement) {
+fun renderFatal(root: HTMLElement, strings: Strings) {
     root.clear()
     root.append {
         main("page") {
-            p("fatal") {
-                +"Flipcards needs local storage (IndexedDB), which is not available in this browser mode."
-            }
+            p("fatal") { +strings.storageUnavailable }
         }
     }
 }
 
-private fun FlowContent.errorBanner(message: String, dispatch: Dispatch) {
+private fun FlowContent.errorBanner(message: String, strings: Strings, dispatch: Dispatch) {
     div("banner") {
         role = "alert"
         span("banner-text") { +message }
         button {
             type = ButtonType.button
-            +"Dismiss"
+            +strings.dismiss
             onClickFunction = { dispatch(ErrorDismissed) }
         }
     }
 }
 
-private fun FlowContent.notFound(message: String) {
+private fun FlowContent.notFound(message: String, strings: Strings) {
     p { +message }
-    a(href = Route.Home.toHash()) { +"Back to stacks" }
+    a(href = Route.Home.toHash()) { +strings.backToStacks }
 }

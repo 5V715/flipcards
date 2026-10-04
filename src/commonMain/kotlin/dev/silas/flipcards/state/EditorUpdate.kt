@@ -1,5 +1,6 @@
 package dev.silas.flipcards.state
 
+import dev.silas.flipcards.i18n.stringsFor
 import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.Side
@@ -110,7 +111,7 @@ internal fun updateEditor(state: AppState, action: EditorAction): AppState {
         is ImageRejected -> state.copy(screen = editor.copy(imageError = SideRef(action.cardId, action.face)))
 
         is ImageSaveFailed -> {
-            val failed = state.copy(error = "Could not store the image.")
+            val failed = state.copy(error = stringsFor(state.uiLanguage).couldNotStoreImage)
             if (stack.sideOrNull(action.cardId, action.face)?.imageId != action.imageId) {
                 failed
             } else {

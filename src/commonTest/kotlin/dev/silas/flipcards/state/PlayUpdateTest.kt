@@ -10,6 +10,7 @@ import dev.silas.flipcards.play.pattern
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class PlayUpdateTest {
     private val stack = Stack(
@@ -136,12 +137,52 @@ class PlayUpdateTest {
         assertEquals(3, (update(s, SessionStarted(2)).phase as PlayPhase.Asking).session.total)
     }
 
-    @Test fun loadedKeepsTheBestScore() =
+    @Test fun loadedKeepsTheBestScores() =
         assertEquals(
-            150,
-            (update(AppState(Route.Play("s1")), PlayLoaded(stack, images, null, bestScore = 150)).screen as Screen.Play)
-                .bestScore,
+            mapOf(3 to 150),
+            (update(AppState(Route.Play("s1")), PlayLoaded(stack, images, null, mapOf(3 to 150))).screen as Screen.Play)
+                .bestScores,
         )
+
+    @Test fun loadedPrefersTheInterfaceLanguageOverTheFirst() {
+        val german = AppState(Route.Play("s1"), uiLanguage = "de")
+        assertEquals("de", (update(german, PlayLoaded(stack, images, null)).phase as PlayPhase.Setup).language)
+        assertEquals("en", (update(german, PlayLoaded(stack, images, "en")).phase as PlayPhase.Setup).language)
+    }
+
+    @Test fun pickingAPlayLanguageChangesTheInterfaceLanguage() {
+        assertEquals("de", update(setup(), PlayLanguageChosen("de")).uiLanguage)
+        assertEquals("en", update(setup(), PlayLanguageChosen("fr")).uiLanguage) // not in the stack
+        val asking = update(setup(), SessionStarted(1))
+        assertEquals("de", update(asking, PlayLanguageChosen("de")).uiLanguage)
+    }
+
+    @Test fun cardCountLimitsTheSession() {
+        var s = update(setup(), CardCountChosen(2))
+        assertEquals(2, (s.phase as PlayPhase.Setup).cardCount)
+        s = update(s, SessionStarted(1))
+        val session = (s.phase as PlayPhase.Asking).session
+        assertEquals(2, session.total)
+        assertEquals(2, session.queue.toSet().size)
+        assertTrue(session.queue.all { it in setOf("a", "b", "c") })
+    }
+
+    @Test fun cardCountOfAllOrMoreMeansAll() {
+        assertNull((update(setup(), CardCountChosen(3)).phase as PlayPhase.Setup).cardCount)
+        assertNull((update(setup(), CardCountChosen(99)).phase as PlayPhase.Setup).cardCount)
+        assertNull((update(setup(), CardCountChosen(null)).phase as PlayPhase.Setup).cardCount)
+        assertEquals(1, (update(setup(), CardCountChosen(0)).phase as PlayPhase.Setup).cardCount)
+    }
+
+    @Test fun playAgainKeepsTheCardCountButMissedOnlyPlaysAllMissed() {
+        var s = playThrough(update(update(setup(), CardCountChosen(2)), SessionStarted(1)), firstTime = false)
+        val summary = s.phase as PlayPhase.Summary
+        assertEquals(2, summary.result.missed.size)
+        assertEquals(2, (update(s, SessionStarted(2)).phase as PlayPhase.Asking).session.total)
+        s = update(s, SessionStarted(3, summary.result.missed))
+        assertEquals(2, (s.phase as PlayPhase.Asking).session.total)
+        assertNull((s.phase as PlayPhase.Asking).session.cardCount)
+    }
 
     @Test fun secondLanguageIsChosenInSetupAndKeptForReplays() {
         var s = update(setup(), SecondLanguageChosen("de"))
@@ -183,18 +224,29 @@ class PlayUpdateTest {
 
     @Test fun aFullRoundSetsTheBestScore() {
         val first = playThrough(update(setup(), SessionStarted(1)), firstTime = true) // 3 cards × 20
-        assertEquals(60, (first.screen as Screen.Play).bestScore)
+        assertEquals(mapOf(3 to 60), (first.screen as Screen.Play).bestScores)
         assertNull((first.phase as PlayPhase.Summary).previousBest)
 
         val worse = playThrough(update(first, SessionStarted(2)), firstTime = false)
         assertEquals(0, (worse.phase as PlayPhase.Summary).result.score)
         assertEquals(60, (worse.phase as PlayPhase.Summary).previousBest)
-        assertEquals(60, (worse.screen as Screen.Play).bestScore)
+        assertEquals(mapOf(3 to 60), (worse.screen as Screen.Play).bestScores)
+    }
+
+    @Test fun shorterRoundsHaveTheirOwnBestScore() {
+        val full = playThrough(update(setup(), SessionStarted(1)), firstTime = true)
+        val oneCard = PlayPhase.Setup("en", HintMode.LENGTH_ONLY, cardCount = 1)
+        val backInSetup = full.copy(screen = (full.screen as Screen.Play).copy(phase = oneCard))
+        val done = playThrough(update(backInSetup, SessionStarted(2)), firstTime = true)
+        assertNull((done.phase as PlayPhase.Summary).previousBest)
+        assertEquals(mapOf(3 to 60, 1 to 20), (done.screen as Screen.Play).bestScores)
+        assertEquals(20, (done.screen as Screen.Play).bestFor(1))
+        assertEquals(60, (done.screen as Screen.Play).bestFor(null))
     }
 
     @Test fun aRoundWithSomeCardsDoesNotSetTheBestScore() {
         val s = playThrough(update(setup(), SessionStarted(1, listOf("b"))), firstTime = true)
         assertEquals(20, (s.phase as PlayPhase.Summary).result.score)
-        assertNull((s.screen as Screen.Play).bestScore)
+        assertEquals(emptyMap(), (s.screen as Screen.Play).bestScores)
     }
 }

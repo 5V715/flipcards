@@ -9,6 +9,11 @@ import dev.silas.flipcards.state.ExportRequested
 import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.Route
 import dev.silas.flipcards.state.Screen
+import dev.silas.flipcards.state.UiLanguageChosen
+import org.w3c.dom.EventInit
+import org.w3c.dom.HTMLSelectElement
+import org.w3c.dom.asList
+import org.w3c.dom.events.Event
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -86,5 +91,24 @@ class StackListViewTest {
         val notFound = mount(AppState(Route.Unknown, Screen.NotFound("Page not found.")))
         assertTrue("Page not found." in notFound.text)
         assertEquals("Back to stacks", notFound.one("a[href='#/']").textContent)
+    }
+
+    @Test fun interfaceLanguageCanBePicked() {
+        val page = list(alpha)
+        val select = page.field("Language") as HTMLSelectElement
+        assertEquals("en", select.value)
+        assertEquals(listOf("English", "Deutsch", "Español", "Français"), select.options.asList().map { it.textContent })
+        select.value = "fr"
+        select.dispatchEvent(Event("change", EventInit(bubbles = true)))
+        assertEquals(listOf<Action>(UiLanguageChosen("fr")), page.dispatched)
+    }
+
+    @Test fun listInGerman() {
+        val page = mount(AppState(Route.Home, Screen.StackList(listOf(alpha, beta)), uiLanguage = "de"))
+        assertTrue(page.hasButton("Neuer Stapel"))
+        assertTrue("1 Karte · en, de" in page.text)
+        assertTrue("2 Karten · en" in page.text)
+        assertEquals("Spielen", page.one("a[href='#/stack/a/play']").textContent)
+        assertEquals("Deutsch", (page.field("Sprache") as HTMLSelectElement).selectedOptions.asList().single().textContent)
     }
 }

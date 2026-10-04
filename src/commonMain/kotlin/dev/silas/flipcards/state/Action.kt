@@ -20,11 +20,14 @@ data class PlayLoaded(
     val stack: Stack,
     val images: Map<String, String>,
     val storedLanguage: String?,
-    val bestScore: Int? = null,
+    val bestScores: Map<Int, Int> = emptyMap(),
 ) : Action
 data class StackMissing(val stackId: String) : Action
 data class ErrorRaised(val message: String) : Action
 data object ErrorDismissed : Action
+
+/** The interface language, picked on the stack list. Picking a play language changes it too. */
+data class UiLanguageChosen(val code: String) : Action
 
 // Stack list. These change no state; they only trigger effects.
 
@@ -73,6 +76,9 @@ data class HintModeChosen(val mode: HintMode) : PlayAction
 
 /** The language also shown on the front, or null for none. */
 data class SecondLanguageChosen(val language: String?) : PlayAction
+
+/** How many cards to play; null for all. */
+data class CardCountChosen(val count: Int?) : PlayAction
 
 /** [cardIds] limits the session to those cards; null means all complete cards. */
 data class SessionStarted(val seed: Long, val cardIds: List<String>? = null) : PlayAction

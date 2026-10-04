@@ -20,8 +20,10 @@ data class Session(
     /** Also shown on the front, under the text in [language]; null for none. */
     val secondLanguage: String? = null,
     val score: Int = 0,
-    /** Whether the score can become the stack's best: false when only some cards are played, e.g. the missed ones. */
+    /** Whether the score can become the stack's best: false when replaying only the missed cards. */
     val countsForBest: Boolean = true,
+    /** How many cards were asked for; null for all. "Play again" asks for as many. */
+    val cardCount: Int? = null,
 )
 
 data class SessionResult(
@@ -32,6 +34,7 @@ data class SessionResult(
     val secondLanguage: String? = null,
     val score: Int = 0,
     val countsForBest: Boolean = true,
+    val cardCount: Int? = null,
 ) {
     val knownFirstTime: Int get() = total - missed.size
 }
@@ -50,11 +53,15 @@ fun startSession(
     seed: Long,
     secondLanguage: String? = null,
     countsForBest: Boolean = true,
-): Session =
-    Session(
-        language, mode, cardIds.shuffled(Random(seed)), cardIds.size, emptyList(), seed,
-        secondLanguage = secondLanguage, countsForBest = countsForBest,
+    /** Plays only this many of the cards, picked at random; null for all. */
+    cardCount: Int? = null,
+): Session {
+    val queue = cardIds.shuffled(Random(seed)).take(cardCount ?: cardIds.size)
+    return Session(
+        language, mode, queue, queue.size, emptyList(), seed,
+        secondLanguage = secondLanguage, countsForBest = countsForBest, cardCount = cardCount,
     )
+}
 
 fun Session.grade(knew: Boolean): Session {
     val current = queue.first()
@@ -74,7 +81,7 @@ fun Session.grade(knew: Boolean): Session {
 val Session.isFinished: Boolean get() = queue.isEmpty()
 
 fun Session.result(): SessionResult =
-    SessionResult(language, mode, total, missed, secondLanguage, score, countsForBest)
+    SessionResult(language, mode, total, missed, secondLanguage, score, countsForBest, cardCount)
 
 fun Session.currentCard(stack: Stack): Card = stack.cards.first { it.id == queue.first() }
 

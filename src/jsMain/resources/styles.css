@@ -126,7 +126,7 @@ button:disabled, button[aria-disabled="true"] { opacity: 0.4; cursor: default; }
 
 /* Form fields. 16 px text stops iOS from zooming in when a field gets the focus. */
 
-input[type="text"], select {
+input[type="text"], input[type="number"], select {
     width: 100%;
     min-height: 44px;
     padding: 8px 12px;
@@ -312,6 +312,15 @@ fieldset.side {
 }
 
 .language-field select { width: auto; }
+
+.card-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-count input[type="number"] { width: 6em; }
+
 
 .hint-modes {
     display: flex;

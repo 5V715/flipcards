@@ -1,5 +1,6 @@
 package dev.silas.flipcards.ui
 
+import dev.silas.flipcards.i18n.Strings
 import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.completeCards
 import dev.silas.flipcards.model.resolveText
@@ -12,6 +13,7 @@ import dev.silas.flipcards.play.pointsPerCard
 import dev.silas.flipcards.play.typedPerSlot
 import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AnswerTyped
+import dev.silas.flipcards.state.CardCountChosen
 import dev.silas.flipcards.state.CardGraded
 import dev.silas.flipcards.state.HintModeChosen
 import dev.silas.flipcards.state.PlayLanguageChosen
@@ -20,13 +22,15 @@ import dev.silas.flipcards.state.Route
 import dev.silas.flipcards.state.Screen
 import dev.silas.flipcards.state.SecondLanguageChosen
 import dev.silas.flipcards.state.SessionStarted
+import dev.silas.flipcards.state.bestFor
 import dev.silas.flipcards.state.toHash
+import kotlin.random.Random
 import kotlinx.browser.document
 import kotlinx.html.ButtonType
 import kotlinx.html.CommonAttributeGroupFacade
+import kotlinx.html.DIV
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
-import kotlinx.html.DIV
 import kotlinx.html.a
 import kotlinx.html.button
 import kotlinx.html.div
@@ -52,14 +56,13 @@ import kotlinx.html.span
 import kotlinx.html.ul
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
-import kotlin.random.Random
 
-fun FlowContent.playView(screen: Screen.Play, dispatch: Dispatch) {
+fun FlowContent.playView(screen: Screen.Play, strings: Strings, dispatch: Dispatch) {
     when (val phase = screen.phase) {
-        is PlayPhase.Setup -> setup(screen, phase, dispatch)
-        is PlayPhase.Asking -> asking(screen, phase, dispatch)
-        is PlayPhase.Revealed -> revealed(screen, phase, dispatch)
-        is PlayPhase.Summary -> summary(screen, phase, dispatch)
+        is PlayPhase.Setup -> setup(screen, phase, strings, dispatch)
+        is PlayPhase.Asking -> asking(screen, phase, strings, dispatch)
+        is PlayPhase.Revealed -> revealed(screen, phase, strings, dispatch)
+        is PlayPhase.Summary -> summary(screen, phase, strings, dispatch)
     }
 }
 
@@ -71,11 +74,11 @@ private fun CommonAttributeGroupFacade.autofocus() {
 /** A new seed per session: update() stays free of randomness, the click supplies it. */
 private fun newSeed(): Long = Random.nextLong()
 
-private fun FlowContent.languageSelect(screen: Screen.Play, current: String, dispatch: Dispatch) {
+private fun FlowContent.languageSelect(screen: Screen.Play, current: String, strings: Strings, dispatch: Dispatch) {
     div("field language-field") {
         label {
             htmlFor = "play-language"
-            +"Language"
+            +strings.language
         }
         select {
             id = "play-language"
@@ -118,15 +121,16 @@ private fun FlowContent.cardFace(
     }
 }
 
-private fun FlowContent.playBar(screen: Screen.Play, session: Session, dispatch: Dispatch) {
+private fun FlowContent.playBar(screen: Screen.Play, session: Session, strings: Strings, dispatch: Dispatch) {
     div("play-bar") {
-        p("progress") { +"${session.queue.size} of ${session.total} left" }
-        p("score") { +"Score ${session.score}" }
-        languageSelect(screen, session.language, dispatch)
+        p("progress") { +strings.left(session.queue.size, session.total) }
+        p("score") { +strings.score(session.score) }
+        languageSelect(screen, session.language, strings, dispatch)
     }
 }
 
 const val ANSWER_INPUT_ID = "answer-input"
+const val CARD_COUNT_ID = "card-count"
 const val ANSWER_SLOTS_ID = "answer-slots"
 
 /**
@@ -176,25 +180,26 @@ fun patchPlay(screen: Screen.Play) {
     if (input.value != phase.typed) input.value = phase.typed
 }
 
-private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, dispatch: Dispatch) {
+private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, strings: Strings, dispatch: Dispatch) {
+    val completeCount = screen.stack.completeCards.size
     div("top-bar") {
-        a(href = Route.Home.toHash()) { +"← Stacks" }
+        a(href = Route.Home.toHash()) { +strings.stacksLink }
     }
     h1 { +screen.stack.name }
-    screen.bestScore?.let { p("best") { +"Best score: $it" } }
-    languageSelect(screen, phase.language, dispatch)
+    screen.bestFor(phase.cardCount)?.let { p("best") { +strings.bestScore(it) } }
+    languageSelect(screen, phase.language, strings, dispatch)
     if (screen.stack.languages.size > 1) {
         div("field language-field") {
             label {
                 htmlFor = "second-language"
-                +"Also show on the front"
+                +strings.alsoOnFront
             }
             select {
                 id = "second-language"
                 option {
                     value = ""
                     selected = phase.secondLanguage == null
-                    +"Nothing"
+                    +strings.nothing
                 }
                 screen.stack.languages.forEach { code ->
                     option {
@@ -211,11 +216,11 @@ private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, dispa
         }
     }
     fieldSet("hint-modes") {
-        legend { +"Hints" }
+        legend { +strings.hints }
         listOf(
-            HintMode.HINTED to "Hinted",
-            HintMode.LENGTH_ONLY to "Length only",
-            HintMode.NONE to "No hint",
+            HintMode.HINTED to strings.hinted,
+            HintMode.LENGTH_ONLY to strings.lengthOnly,
+            HintMode.NONE to strings.noHint,
         ).forEach { (mode, text) ->
             label("checkbox") {
                 input(type = InputType.radio, name = "hint-mode") {
@@ -227,27 +232,49 @@ private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, dispa
             }
         }
     }
-    if (screen.stack.completeCards.isEmpty()) {
-        p("empty") { +"This stack has no complete cards yet." }
-        a(href = Route.Edit(screen.stack.id).toHash(), classes = "button") { +"Open the editor" }
+    if (completeCount > 1) {
+        div("field card-count-field") {
+            label {
+                htmlFor = CARD_COUNT_ID
+                +strings.cardsToPlay
+            }
+            div("card-count") {
+                input(type = InputType.number) {
+                    id = CARD_COUNT_ID
+                    min = "1"
+                    max = completeCount.toString()
+                    attributes["inputmode"] = "numeric"
+                    value = (phase.cardCount ?: completeCount).toString()
+                    // A number that cannot be read is left alone; the next redraw shows the count in force.
+                    onChangeFunction = {
+                        (it.target as HTMLInputElement).value.toIntOrNull()?.let { count -> dispatch(CardCountChosen(count)) }
+                    }
+                }
+                span { +strings.ofCards(completeCount) }
+            }
+        }
+    }
+    if (completeCount == 0) {
+        p("empty") { +strings.noCompleteCards }
+        a(href = Route.Edit(screen.stack.id).toHash(), classes = "button") { +strings.openEditor }
     } else {
         div("actions") {
             button(classes = "primary") {
                 type = ButtonType.button
                 autofocus()
-                +"Start"
+                +strings.start
                 onClickFunction = { dispatch(SessionStarted(newSeed())) }
             }
         }
     }
 }
 
-private fun FlowContent.asking(screen: Screen.Play, phase: PlayPhase.Asking, dispatch: Dispatch) {
+private fun FlowContent.asking(screen: Screen.Play, phase: PlayPhase.Asking, strings: Strings, dispatch: Dispatch) {
     val session = phase.session
     val card = session.currentCard(screen.stack)
     val backHasText = card.back.resolveText(session.language, screen.stack.languages.first()) != null
 
-    playBar(screen, session, dispatch)
+    playBar(screen, session, strings, dispatch)
     cardFace(screen, card.front, session.language, revealed = false, secondLanguage = session.secondLanguage)
     form(classes = "answer-form") {
         onSubmitFunction = { event ->
@@ -265,7 +292,8 @@ private fun FlowContent.asking(screen: Screen.Play, phase: PlayPhase.Asking, dis
                 // Invisible, on top of the slots: tapping them opens the keyboard, and typing lands here.
                 input(type = InputType.text, classes = "answer-capture") {
                     id = ANSWER_INPUT_ID
-                    attributes["aria-label"] = phase.hint?.let { "Your answer, ${it.blankCount} letters" } ?: "Your answer"
+                    attributes["aria-label"] = phase.hint?.let { strings.yourAnswerLetters(it.blankCount) }
+                        ?: strings.yourAnswerLabel
                     attributes["autocomplete"] = "off"
                     attributes["autocorrect"] = "off"
                     attributes["autocapitalize"] = "off"
@@ -280,21 +308,21 @@ private fun FlowContent.asking(screen: Screen.Play, phase: PlayPhase.Asking, dis
         button(classes = "primary") {
             type = ButtonType.submit
             if (!backHasText) autofocus()
-            +"Show answer"
+            +strings.showAnswer
         }
     }
 }
 
-private fun FlowContent.revealed(screen: Screen.Play, phase: PlayPhase.Revealed, dispatch: Dispatch) {
+private fun FlowContent.revealed(screen: Screen.Play, phase: PlayPhase.Revealed, strings: Strings, dispatch: Dispatch) {
     val session = phase.session
     val card = session.currentCard(screen.stack)
 
-    playBar(screen, session, dispatch)
+    playBar(screen, session, strings, dispatch)
     cardFace(screen, card.back, session.language, revealed = true)
-    if (phase.typed.isNotBlank()) p("your-answer") { +"Your answer: ${phase.typed}" }
+    if (phase.typed.isNotBlank()) p("your-answer") { +strings.yourAnswer(phase.typed) }
     when (phase.suggestion) {
-        true -> p("suggestion right") { +"Looks right" }
-        false -> p("suggestion different") { +"Looks different" }
+        true -> p("suggestion right") { +strings.looksRight }
+        false -> p("suggestion different") { +strings.looksDifferent }
         null -> {}
     }
     // The suggested button gets the focus, so Enter accepts it; the player can always pick the other.
@@ -302,32 +330,32 @@ private fun FlowContent.revealed(screen: Screen.Play, phase: PlayPhase.Revealed,
         button(classes = "primary") {
             type = ButtonType.button
             if (phase.suggestion == true) autofocus()
-            +"Knew it"
+            +strings.knewIt
             onClickFunction = { dispatch(CardGraded(true)) }
         }
         button {
             type = ButtonType.button
             if (phase.suggestion == false) autofocus()
-            +"Didn't know"
+            +strings.didntKnow
             onClickFunction = { dispatch(CardGraded(false)) }
         }
     }
 }
 
-private fun FlowContent.summary(screen: Screen.Play, phase: PlayPhase.Summary, dispatch: Dispatch) {
+private fun FlowContent.summary(screen: Screen.Play, phase: PlayPhase.Summary, strings: Strings, dispatch: Dispatch) {
     val result = phase.result
     val fallback = screen.stack.languages.first()
-    fun Side.label(): String = resolveText(result.language, fallback) ?: "(image)"
+    fun Side.label(): String = resolveText(result.language, fallback) ?: strings.image
 
-    h1 { +"${result.knownFirstTime} of ${result.total} known first time" }
-    p("score final") { +"Score: ${result.score} of ${result.total * pointsPerCard(result.mode)}" }
+    h1 { +strings.knownFirstTime(result.knownFirstTime, result.total) }
+    p("score final") { +strings.finalScore(result.score, result.total * pointsPerCard(result.mode)) }
     when {
-        !result.countsForBest -> p("best") { +"Only rounds with all cards count for the best score." }
-        result.score > (phase.previousBest ?: 0) -> p("best new") { +"New best score!" }
-        else -> screen.bestScore?.let { p("best") { +"Best score: $it" } }
+        !result.countsForBest -> p("best") { +strings.missedOnlyDoesNotCount }
+        result.score > (phase.previousBest ?: 0) -> p("best new") { +strings.newBest }
+        else -> screen.bestScores[result.total]?.let { p("best") { +strings.bestScore(it) } }
     }
     if (result.missed.isNotEmpty()) {
-        h2 { +"Missed cards" }
+        h2 { +strings.missedCards }
         ul("missed-cards") {
             result.missed.mapNotNull { id -> screen.stack.cards.find { it.id == id } }.forEach { card ->
                 li("missed") { +"${card.front.label()} → ${card.back.label()}" }
@@ -337,16 +365,16 @@ private fun FlowContent.summary(screen: Screen.Play, phase: PlayPhase.Summary, d
     div("actions") {
         button(classes = "primary") {
             type = ButtonType.button
-            +"Play again"
+            +strings.playAgain
             onClickFunction = { dispatch(SessionStarted(newSeed())) }
         }
         if (result.missed.isNotEmpty()) {
             button {
                 type = ButtonType.button
-                +"Play missed cards only"
+                +strings.playMissedOnly
                 onClickFunction = { dispatch(SessionStarted(newSeed(), result.missed)) }
             }
         }
-        a(href = Route.Home.toHash(), classes = "button") { +"Back to stacks" }
+        a(href = Route.Home.toHash(), classes = "button") { +strings.backToStacks }
     }
 }

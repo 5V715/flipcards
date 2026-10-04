@@ -2,6 +2,7 @@ package dev.silas.flipcards
 
 import dev.silas.flipcards.effects.Effects
 import dev.silas.flipcards.effects.Env
+import dev.silas.flipcards.i18n.stringsFor
 import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.Screen
@@ -18,7 +19,7 @@ import org.w3c.dom.HTMLElement
  * Every action goes through [dispatch]: compute the new state, redraw the screen, start any async work.
  */
 class Store(private val root: HTMLElement, env: Env, private val scope: CoroutineScope) {
-    var state = AppState()
+    var state = AppState(uiLanguage = env.loadUiLanguage() ?: "en")
         private set
 
     private val effects = Effects(env, scope, { state }, ::dispatch)
@@ -35,7 +36,7 @@ class Store(private val root: HTMLElement, env: Env, private val scope: Coroutin
             render(root, state, ::dispatch, scope)
         } else {
             // Silent actions skip the redraw, so the few things they change on screen are patched by hand.
-            (state.screen as? Screen.Editor)?.let { patchEditor(it) }
+            (state.screen as? Screen.Editor)?.let { patchEditor(it, stringsFor(state.uiLanguage)) }
             (state.screen as? Screen.Play)?.let { patchPlay(it) }
         }
         effects.handle(action, before, state)

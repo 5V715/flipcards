@@ -1,6 +1,8 @@
 package dev.silas.flipcards
 
 import dev.silas.flipcards.browser.BrowserEnv
+import dev.silas.flipcards.browser.loadStoredUiLanguage
+import dev.silas.flipcards.i18n.stringsFor
 import dev.silas.flipcards.state.Navigate
 import dev.silas.flipcards.state.parseRoute
 import dev.silas.flipcards.storage.IndexedDbStorage
@@ -18,7 +20,7 @@ fun main() {
         val storage = try {
             IndexedDbStorage.open()
         } catch (e: Throwable) {
-            renderFatal(root)
+            renderFatal(root, stringsFor(loadStoredUiLanguage() ?: "en"))
             return@launch
         }
         val store = Store(root, BrowserEnv(storage), scope)

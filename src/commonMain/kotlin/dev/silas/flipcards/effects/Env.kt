@@ -19,7 +19,13 @@ interface Env {
 
     fun savePlayLanguage(stackId: String, language: String)
 
-    fun loadBestScore(stackId: String): Int?
+    /** The best score per number of cards played. */
+    fun loadBestScores(stackId: String): Map<Int, Int>
 
-    fun saveBestScore(stackId: String, score: Int)
+    fun saveBestScores(stackId: String, scores: Map<Int, Int>)
+
+    /** The interface language picked last, or a guess from the browser; null for the default. */
+    fun loadUiLanguage(): String?
+
+    fun saveUiLanguage(code: String)
 }

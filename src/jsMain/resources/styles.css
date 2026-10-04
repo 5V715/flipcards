@@ -1,1 +1,411 @@
-body { margin: 0; font-family: system-ui, sans-serif; }
+/*
+ * Mobile first: everything up to the media query at the bottom is written for a
+ * 320 px wide phone in portrait. Wider screens only add to it.
+ */
+
+:root {
+    color-scheme: light dark;
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --text: #1b1f24;
+    --muted: #57606a;
+    --border: #c9d1d9;
+    --primary: #1f5fbf;
+    --on-primary: #ffffff;
+    --danger: #b3261e;
+    --ok: #1a7f37;
+    --error-bg: #fdecea;
+    --error-text: #7a1c16;
+    --focus: #b35900;
+    --radius: 10px;
+    --gap: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #14171a;
+        --surface: #1f2428;
+        --text: #e9edf1;
+        --muted: #a3adb8;
+        --border: #414b55;
+        --primary: #7fb0ff;
+        --on-primary: #0b1a2e;
+        --danger: #ff9b93;
+        --ok: #6fdd8b;
+        --error-bg: #4a1f1b;
+        --error-text: #ffd9d5;
+        --focus: #ffb454;
+    }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+h1 { font-size: 1.5rem; margin: 0; overflow-wrap: anywhere; }
+h2 { font-size: 1.1rem; margin: 0; overflow-wrap: anywhere; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+a { color: var(--primary); }
+
+:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Buttons, and links and file-input labels that look like buttons. 44 px is a comfortable touch target. */
+
+button, .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 16px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button.primary, .button.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+}
+
+button.danger { color: var(--danger); }
+button:disabled { opacity: 0.4; cursor: default; }
+
+/* The real file input is visually hidden inside its label; show its focus on the label. */
+.file-button:focus-within {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Form fields. 16 px text stops iOS from zooming in when a field gets the focus. */
+
+input[type="text"], select {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.field label, legend {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+label.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+}
+
+label.checkbox input {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+}
+
+fieldset {
+    margin: 0;
+    padding: 12px;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.field-error { color: var(--danger); font-size: 0.875rem; }
+
+.banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap);
+    padding: 12px;
+    background: var(--error-bg);
+    color: var(--error-text);
+    border-radius: var(--radius);
+}
+
+.banner-text { overflow-wrap: anywhere; }
+
+.empty, .loading, .stack-meta, .progress, .your-answer { color: var(--muted); }
+
+.top-bar, .play-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap);
+}
+
+.top-bar a:not(.button) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+/* Stack list */
+
+.stacks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+.stack, .card-editor, .languages {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* Editor */
+
+.save-status {
+    font-size: 0.875rem;
+    color: var(--muted);
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 14px;
+    min-height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+}
+
+.chip > span:only-child { padding-right: 14px; }
+
+.chip button {
+    border: 0;
+    background: transparent;
+    border-radius: 22px;
+    padding: 8px;
+}
+
+.add-language {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* On a narrow phone the button drops below the field, so the placeholder stays readable. */
+.add-language input { flex: 1 1 200px; min-width: 0; }
+.add-language button { flex: 1 0 auto; }
+
+.card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-header .actions { margin-left: auto; }
+
+.badge {
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: 12px;
+}
+
+.sides {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+fieldset.side {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.side-image {
+    display: block;
+    max-width: 100%;
+    max-height: 40vh;
+    object-fit: contain;
+    /* The border keeps light images, such as a flag with a white stripe, visible on the card. */
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+/* Play */
+
+.language-field {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.language-field select { width: auto; }
+
+.hint-modes {
+    display: flex;
+    flex-direction: column;
+}
+
+.flipcard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.flipcard .side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+/* Smaller than in the editor, so card, hint, input and buttons fit a small phone without scrolling. */
+.flipcard .side-image { max-height: 30vh; }
+
+.side-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* The answer side turns into view once, when it is rendered. */
+.flipcard.revealed { animation: flip 300ms ease-out; }
+
+@keyframes flip {
+    from { transform: rotateY(90deg); }
+    to { transform: rotateY(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flipcard.revealed { animation: none; }
+}
+
+.hint {
+    font-family: ui-monospace, monospace;
+    font-size: 1.25rem;
+    text-align: center;
+    /* Keeps the wider gap between the words of an answer. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.answer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.your-answer, .suggestion { text-align: center; }
+.suggestion { font-weight: 600; }
+.suggestion.right { color: var(--ok); }
+.suggestion.different { color: var(--danger); }
+
+.grade button { flex: 1; }
+
+.missed-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.missed {
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-wrap: anywhere;
+}
+
+/* Wider screens: use the extra width instead of stacking everything. */
+
+@media (min-width: 720px) {
+    .page { padding: 24px; }
+
+    .stack {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sides { flex-direction: row; }
+    .sides > fieldset.side { flex: 1; }
+
+    .answer-form { flex-direction: row; }
+    .answer-form input { flex: 1; }
+
+    .flipcard { min-height: 220px; }
+}

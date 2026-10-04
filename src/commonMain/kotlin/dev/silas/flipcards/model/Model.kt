@@ -1,4 +1,4 @@
-package flipcards.model
+package dev.silas.flipcards.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

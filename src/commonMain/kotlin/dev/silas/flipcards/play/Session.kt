@@ -1,8 +1,8 @@
-package flipcards.play
+package dev.silas.flipcards.play
 
-import flipcards.model.Card
-import flipcards.model.Stack
-import flipcards.model.resolveText
+import dev.silas.flipcards.model.Card
+import dev.silas.flipcards.model.Stack
+import dev.silas.flipcards.model.resolveText
 import kotlin.random.Random
 
 /** One run through a set of cards. Immutable: [grade] returns the next session. */

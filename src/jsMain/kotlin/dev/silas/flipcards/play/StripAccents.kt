@@ -1,4 +1,4 @@
-package flipcards.play
+package dev.silas.flipcards.play
 
 private val combiningMarks = Regex("[\\u0300-\\u036f]")
 

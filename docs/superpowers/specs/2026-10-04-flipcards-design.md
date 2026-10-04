@@ -279,14 +279,14 @@ flipcards/
 ├── build.gradle.kts, settings.gradle.kts, gradle wrapper
 ├── .github/workflows/deploy.yml
 └── src/
-    ├── commonMain/kotlin/flipcards/
+    ├── commonMain/kotlin/dev/silas/flipcards/
     │   ├── model/      Stack, Card, Side, SideText, text resolution, completeness
     │   ├── state/      AppState, Screen, Action, update()
     │   ├── play/       Session, hint generation, answer comparison
     │   ├── transfer/   export file format, validation, fresh ids, name deduplication
     │   └── storage/    Storage interface
     ├── commonTest/     tests for the above, plus InMemoryStorage
-    ├── jsMain/kotlin/flipcards/
+    ├── jsMain/kotlin/dev/silas/flipcards/
     │   ├── Main.kt     opens storage, creates the store, starts routing
     │   ├── Store.kt    holds state, runs update(), re-renders, launches async work
     │   ├── Router.kt   hash <-> route

@@ -1,4 +1,4 @@
-package flipcards.play
+package dev.silas.flipcards.play
 
 import kotlin.random.Random
 import kotlin.test.Test

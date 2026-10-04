@@ -16,7 +16,7 @@
 - Dependencies are exactly: kotlinx-html, kotlinx-serialization-json, kotlinx-coroutines (plus kotlin-test and kotlinx-coroutines-test for tests). IndexedDB is reached through hand-written `external` declarations.
 - `commonMain` never references `kotlinx.browser`, `org.w3c.*` or `kotlinx.html`.
 - All stack text reaches the page through kotlinx.html text nodes (`+text`), never `unsafe { }` or `innerHTML`.
-- Root package is `flipcards`. All code under `src/<sourceSet>/kotlin/flipcards/`.
+- Root package is `dev.silas.flipcards`. All code under `src/<sourceSet>/kotlin/dev/silas/flipcards/`.
 - The app interface is English. User-visible copy given in this plan is exact.
 - Mobile first: base CSS targets a 320 px wide portrait phone; wider layouts only via `min-width` media queries; touch targets at least 44 px high; nothing depends on hover.
 - Editor autosave delay: 500 ms. Image downscale: longest side at most 800 px, JPEG, white background.
@@ -45,7 +45,7 @@
 ```
 build.gradle.kts, settings.gradle.kts, gradle.properties, .gitignore, README.md
 .github/workflows/deploy.yml
-src/commonMain/kotlin/flipcards/
+src/commonMain/kotlin/dev/silas/flipcards/
   model/Model.kt            Stack, Card, Side, SideText, Face, StackSummary, resolve/complete helpers, FlipJson
   play/Answer.kt            normalizeAnswer, suggest, expect stripAccents
   play/Hint.kt              HintMode, hint()
@@ -60,8 +60,8 @@ src/commonMain/kotlin/flipcards/
   storage/Storage.kt        Storage interface
   effects/Env.kt            Env interface
   effects/Effects.kt        Effects
-src/commonTest/kotlin/flipcards/   one test file per file above, plus storage/InMemoryStorage.kt, effects/FakeEnv.kt
-src/jsMain/kotlin/flipcards/
+src/commonTest/kotlin/dev/silas/flipcards/   one test file per file above, plus storage/InMemoryStorage.kt, effects/FakeEnv.kt
+src/jsMain/kotlin/dev/silas/flipcards/
   Main.kt, Store.kt
   play/StripAccents.kt      actual stripAccents
   storage/IndexedDb.kt      external declarations + await helpers
@@ -70,13 +70,13 @@ src/jsMain/kotlin/flipcards/
   ui/Layout.kt              page frame, error banner, not found, fatal
   ui/StackListView.kt, ui/EditorView.kt, ui/PlayView.kt
 src/jsMain/resources/index.html, styles.css
-src/jsTest/kotlin/flipcards/storage/IndexedDbStorageTest.kt
+src/jsTest/kotlin/dev/silas/flipcards/storage/IndexedDbStorageTest.kt
 ```
 
 Commands used throughout:
 
 - All tests: `./gradlew jsBrowserTest`
-- One class: `./gradlew jsBrowserTest --tests "flipcards.model.ModelTest"`
+- One class: `./gradlew jsBrowserTest --tests "dev.silas.flipcards.model.ModelTest"`
 - Dev server with reload: `./gradlew jsBrowserDevelopmentRun --continuous`
 - Production bundle: `./gradlew jsBrowserDistribution` (output in `build/dist/js/productionExecutable`)
 
@@ -87,8 +87,8 @@ Commands used throughout:
 **Files:**
 - Create: `settings.gradle.kts`, `build.gradle.kts`, `gradle.properties`, `.gitignore`, Gradle wrapper files
 - Create: `src/jsMain/resources/index.html`, `src/jsMain/resources/styles.css`
-- Create: `src/jsMain/kotlin/flipcards/Main.kt`
-- Test: `src/commonTest/kotlin/flipcards/SmokeTest.kt`
+- Create: `src/jsMain/kotlin/dev/silas/flipcards/Main.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/SmokeTest.kt`
 
 **Interfaces:**
 - Produces: a building project; `index.html` with `<div id="root">`, loading `styles.css` and `flipcards.js` by relative path.
@@ -193,8 +193,8 @@ Expected: `build/dist/js/productionExecutable/` contains `index.html`, `styles.c
 ### Task 2: Model
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/model/Model.kt`
-- Test: `src/commonTest/kotlin/flipcards/model/ModelTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/model/Model.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/model/ModelTest.kt`
 
 **Interfaces:**
 - Produces:
@@ -255,7 +255,7 @@ private val vienna = Side(SideText.Translated(mapOf("en" to "Vienna", "de" to "W
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.model.ModelTest"`. Expected: compilation fails, unresolved references.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.model.ModelTest"`. Expected: compilation fails, unresolved references.
 - [ ] **Step 3: Implement `Model.kt`** with the declarations above.
 - [ ] **Step 4: Run the same command.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add stack model`.
@@ -265,9 +265,9 @@ private val vienna = Side(SideText.Translated(mapOf("en" to "Vienna", "de" to "W
 ### Task 3: Answer comparison and hints
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/play/Answer.kt`, `src/commonMain/kotlin/flipcards/play/Hint.kt`
-- Create: `src/jsMain/kotlin/flipcards/play/StripAccents.kt`
-- Test: `src/commonTest/kotlin/flipcards/play/AnswerTest.kt`, `src/commonTest/kotlin/flipcards/play/HintTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/play/Answer.kt`, `src/commonMain/kotlin/dev/silas/flipcards/play/Hint.kt`
+- Create: `src/jsMain/kotlin/dev/silas/flipcards/play/StripAccents.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/play/AnswerTest.kt`, `src/commonTest/kotlin/dev/silas/flipcards/play/HintTest.kt`
 
 **Interfaces:**
 - Produces:
@@ -322,7 +322,7 @@ fun hint(answer: String?, mode: HintMode, random: Random): String?
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.play.*"`. Expected: compilation fails.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.play.*"`. Expected: compilation fails.
 - [ ] **Step 3: Implement.** In `hint`, a character is hidden when `isLetterOrDigit()` is true. Reveal count is `if (n == 1) 0 else max(1, n / 3)`, positions picked with `random`. Output characters are joined with a single space.
 - [ ] **Step 4: Run again.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add answer comparison and hints`.
@@ -332,8 +332,8 @@ fun hint(answer: String?, mode: HintMode, random: Random): String?
 ### Task 4: Session
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/play/Session.kt`
-- Test: `src/commonTest/kotlin/flipcards/play/SessionTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/play/Session.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/play/SessionTest.kt`
 
 **Interfaces:**
 - Consumes: `Stack`, `Card`, `Face`, `resolveText` (Task 2); `HintMode`, `hint` (Task 3).
@@ -413,7 +413,7 @@ private fun start(seed: Long = 1) = startSession(ids, "en", HintMode.HINTED, see
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.play.SessionTest"`. Expected: compilation fails.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.play.SessionTest"`. Expected: compilation fails.
 - [ ] **Step 3: Implement `Session.kt`.**
 - [ ] **Step 4: Run again.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add play session logic`.
@@ -423,8 +423,8 @@ private fun start(seed: Long = 1) = startSession(ids, "en", HintMode.HINTED, see
 ### Task 5: Import and export format
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/transfer/Transfer.kt`
-- Test: `src/commonTest/kotlin/flipcards/transfer/TransferTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/transfer/Transfer.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/transfer/TransferTest.kt`
 
 **Interfaces:**
 - Consumes: model (Task 2).
@@ -508,7 +508,7 @@ Rejection tests, one per table row, each asserting `assertFailsWith<ImportExcept
 | `rejectsMissingImage` | `images` emptied, message `Card 1 refers to a missing image.` |
 | `rejectsNonImageData` | image value `javascript:alert(1)`; image value `https://example.com/a.png` |
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.transfer.TransferTest"`. Expected: compilation fails.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.transfer.TransferTest"`. Expected: compilation fails.
 - [ ] **Step 3: Implement `Transfer.kt`.** `exportFileName`: lowercase, each run of characters other than `a-z0-9` becomes `-`, trim `-` from both ends, use `stack` if empty, append `.flipcards.json`. `encodeExport` uses a `Json` with `encodeDefaults = true`.
 - [ ] **Step 4: Run again.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add stack export and import format`.
@@ -518,8 +518,8 @@ Rejection tests, one per table row, each asserting `assertFailsWith<ImportExcept
 ### Task 6: Routes, state, actions and core update
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/state/Route.kt`, `AppState.kt`, `Action.kt`, `Update.kt`
-- Test: `src/commonTest/kotlin/flipcards/state/RouteTest.kt`, `UpdateTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/state/Route.kt`, `AppState.kt`, `Action.kt`, `Update.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/state/RouteTest.kt`, `UpdateTest.kt`
 
 **Interfaces:**
 - Consumes: model, `HintMode`, `Session`, `SessionResult`.
@@ -660,7 +660,7 @@ private val stack = Stack("s1", "S", listOf("en"), emptyList())
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.state.*"`. Expected: compilation fails.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.state.*"`. Expected: compilation fails.
 - [ ] **Step 3: Implement the four files.** `update` is a `when` over the action; editor actions delegate to `updateEditor(state, action)` in `EditorUpdate.kt` and play actions to `updatePlay(state, action)` in `PlayUpdate.kt`. Create both now as functions that return `state`.
 - [ ] **Step 4: Run again.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add routes, state and core update`.
@@ -670,8 +670,8 @@ private val stack = Stack("s1", "S", listOf("en"), emptyList())
 ### Task 7: Editor update
 
 **Files:**
-- Modify: `src/commonMain/kotlin/flipcards/state/EditorUpdate.kt`
-- Test: `src/commonTest/kotlin/flipcards/state/EditorUpdateTest.kt`
+- Modify: `src/commonMain/kotlin/dev/silas/flipcards/state/EditorUpdate.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/state/EditorUpdateTest.kt`
 
 **Interfaces:**
 - Consumes: Task 6 types.
@@ -781,7 +781,7 @@ private val stack = Stack("s1", "S", listOf("en"), emptyList())
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.state.EditorUpdateTest"`. Expected: FAIL.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.state.EditorUpdateTest"`. Expected: FAIL.
 - [ ] **Step 3: Implement `updateEditor`.**
 - [ ] **Step 4: Run again.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add editor state updates`.
@@ -791,8 +791,8 @@ private val stack = Stack("s1", "S", listOf("en"), emptyList())
 ### Task 8: Play update
 
 **Files:**
-- Modify: `src/commonMain/kotlin/flipcards/state/PlayUpdate.kt`, `Update.kt` (the `PlayLoaded` case)
-- Test: `src/commonTest/kotlin/flipcards/state/PlayUpdateTest.kt`
+- Modify: `src/commonMain/kotlin/dev/silas/flipcards/state/PlayUpdate.kt`, `Update.kt` (the `PlayLoaded` case)
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/state/PlayUpdateTest.kt`
 
 **Interfaces:**
 - Consumes: Task 6 types; `startSession`, `grade`, `isFinished`, `result`, `currentCard`, `hintFor` (Task 4); `suggest` (Task 3).
@@ -890,7 +890,7 @@ private val stack = Stack("s1", "S", listOf("en"), emptyList())
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.state.PlayUpdateTest"`. Expected: FAIL.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.state.PlayUpdateTest"`. Expected: FAIL.
 - [ ] **Step 3: Implement `updatePlay` and the `PlayLoaded` case.**
 - [ ] **Step 4: Run all tests:** `./gradlew jsBrowserTest`. Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add play state updates`.
@@ -900,10 +900,10 @@ private val stack = Stack("s1", "S", listOf("en"), emptyList())
 ### Task 9: Storage
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/storage/Storage.kt`
-- Create: `src/commonTest/kotlin/flipcards/storage/InMemoryStorage.kt`
-- Create: `src/jsMain/kotlin/flipcards/storage/IndexedDb.kt`, `IndexedDbStorage.kt`
-- Test: `src/jsTest/kotlin/flipcards/storage/IndexedDbStorageTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/storage/Storage.kt`
+- Create: `src/commonTest/kotlin/dev/silas/flipcards/storage/InMemoryStorage.kt`
+- Create: `src/jsMain/kotlin/dev/silas/flipcards/storage/IndexedDb.kt`, `IndexedDbStorage.kt`
+- Test: `src/jsTest/kotlin/dev/silas/flipcards/storage/IndexedDbStorageTest.kt`
 
 **Interfaces:**
 - Produces:
@@ -976,7 +976,7 @@ IndexedDB layout: database version 1. Object store `stacks`, keyPath `id`, recor
 }
 ```
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.storage.IndexedDbStorageTest"`. Expected: compilation fails.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.storage.IndexedDbStorageTest"`. Expected: compilation fails.
 - [ ] **Step 3: Implement `Storage.kt`, `IndexedDb.kt`, `IndexedDbStorage.kt` and `InMemoryStorage.kt`.** `InMemoryStorage.importStack` also rejects existing ids, so it behaves like the real one.
 - [ ] **Step 4: Run again.** Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add IndexedDB storage`.
@@ -986,9 +986,9 @@ IndexedDB layout: database version 1. Object store `stacks`, keyPath `id`, recor
 ### Task 10: Effects
 
 **Files:**
-- Create: `src/commonMain/kotlin/flipcards/effects/Env.kt`, `Effects.kt`
-- Create: `src/commonTest/kotlin/flipcards/effects/FakeEnv.kt`
-- Test: `src/commonTest/kotlin/flipcards/effects/EffectsTest.kt`
+- Create: `src/commonMain/kotlin/dev/silas/flipcards/effects/Env.kt`, `Effects.kt`
+- Create: `src/commonTest/kotlin/dev/silas/flipcards/effects/FakeEnv.kt`
+- Test: `src/commonTest/kotlin/dev/silas/flipcards/effects/EffectsTest.kt`
 
 **Interfaces:**
 - Consumes: `Storage` (Task 9), actions and state (Tasks 6 to 8), transfer functions (Task 5).
@@ -1068,7 +1068,7 @@ What `handle` does:
 
 Each named test asserts exactly what its comment states.
 
-- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "flipcards.effects.EffectsTest"`. Expected: compilation fails.
+- [ ] **Step 2: Run** `./gradlew jsBrowserTest --tests "dev.silas.flipcards.effects.EffectsTest"`. Expected: compilation fails.
 - [ ] **Step 3: Implement `Env.kt`, `Effects.kt`, `FakeEnv.kt`.** The autosave timer is a `Job` held by `Effects`, cancelled and relaunched on each stack change, using `delay(500)`.
 - [ ] **Step 4: Run all tests:** `./gradlew jsBrowserTest`. Expected: PASS.
 - [ ] **Step 5: Commit:** `feat: add effects`.
@@ -1078,8 +1078,8 @@ Each named test asserts exactly what its comment states.
 ### Task 11: Store, browser layer and stack list screen
 
 **Files:**
-- Create: `src/jsMain/kotlin/flipcards/Store.kt`, `browser/Browser.kt`, `ui/Layout.kt`, `ui/StackListView.kt`
-- Modify: `src/jsMain/kotlin/flipcards/Main.kt`
+- Create: `src/jsMain/kotlin/dev/silas/flipcards/Store.kt`, `browser/Browser.kt`, `ui/Layout.kt`, `ui/StackListView.kt`
+- Modify: `src/jsMain/kotlin/dev/silas/flipcards/Main.kt`
 
 **Interfaces:**
 - Consumes: everything in `commonMain`; `IndexedDbStorage.open()`.
@@ -1133,8 +1133,8 @@ Behaviour and copy:
 ### Task 12: Editor screen
 
 **Files:**
-- Create: `src/jsMain/kotlin/flipcards/ui/EditorView.kt`
-- Modify: `src/jsMain/kotlin/flipcards/ui/Layout.kt` (call the view)
+- Create: `src/jsMain/kotlin/dev/silas/flipcards/ui/EditorView.kt`
+- Modify: `src/jsMain/kotlin/dev/silas/flipcards/ui/Layout.kt` (call the view)
 
 **Interfaces:**
 - Consumes: `Screen.Editor`, editor actions, `newId`, `downscaleToJpegDataUrl`, `isComplete`.
@@ -1174,8 +1174,8 @@ The `Incomplete` badge only updates on the next re-render (typing is silent). Th
 ### Task 13: Play screen
 
 **Files:**
-- Create: `src/jsMain/kotlin/flipcards/ui/PlayView.kt`
-- Modify: `src/jsMain/kotlin/flipcards/ui/Layout.kt` (call the view)
+- Create: `src/jsMain/kotlin/dev/silas/flipcards/ui/PlayView.kt`
+- Modify: `src/jsMain/kotlin/dev/silas/flipcards/ui/Layout.kt` (call the view)
 
 **Interfaces:**
 - Consumes: `Screen.Play`, `PlayPhase`, play actions, `currentCard`, `resolveText`, `completeCards`.

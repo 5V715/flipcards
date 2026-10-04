@@ -1,4 +1,4 @@
-package flipcards
+package dev.silas.flipcards
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

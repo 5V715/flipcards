@@ -1,9 +1,9 @@
-package flipcards.play
+package dev.silas.flipcards.play
 
-import flipcards.model.Card
-import flipcards.model.Side
-import flipcards.model.SideText
-import flipcards.model.Stack
+import dev.silas.flipcards.model.Card
+import dev.silas.flipcards.model.Side
+import dev.silas.flipcards.model.SideText
+import dev.silas.flipcards.model.Stack
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

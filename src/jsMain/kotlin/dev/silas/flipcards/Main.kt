@@ -1,4 +1,4 @@
-package flipcards
+package dev.silas.flipcards
 
 import kotlinx.browser.document
 import kotlinx.html.dom.append

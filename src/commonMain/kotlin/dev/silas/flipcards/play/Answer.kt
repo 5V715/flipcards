@@ -1,4 +1,4 @@
-package flipcards.play
+package dev.silas.flipcards.play
 
 /** Removes accents: "Bogotá" becomes "Bogota". Needs Unicode normalization, so each platform supplies it. */
 expect fun stripAccents(text: String): String

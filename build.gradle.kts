@@ -3,7 +3,7 @@ plugins {
     kotlin("plugin.serialization") version "2.4.20"
 }
 
-group = "flipcards"
+group = "dev.silas"
 version = "1.0"
 
 repositories { mavenCentral() }

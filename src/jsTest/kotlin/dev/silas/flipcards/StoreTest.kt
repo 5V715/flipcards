@@ -106,7 +106,7 @@ class StoreTest {
         assertTrue("Looks right" in root.textContent!!)
 
         button("Knew it").click()
-        assertTrue("1 of 1 known first time" in root.textContent!!)
+        assertTrue("1 of 1 known" in root.textContent!!)
         assertTrue("New best score!" in root.textContent!!)
         assertEquals(mapOf(1 to 20), env.bestScores["a"])
     }

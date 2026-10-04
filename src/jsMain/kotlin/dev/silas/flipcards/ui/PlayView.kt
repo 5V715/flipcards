@@ -347,7 +347,7 @@ private fun FlowContent.summary(screen: Screen.Play, phase: PlayPhase.Summary, s
     val fallback = screen.stack.languages.first()
     fun Side.label(): String = resolveText(result.language, fallback) ?: strings.image
 
-    h1 { +strings.knownFirstTime(result.knownFirstTime, result.total) }
+    h1 { +strings.known(result.known, result.total) }
     p("score final") { +strings.finalScore(result.score, result.total * pointsPerCard(result.mode)) }
     when {
         !result.countsForBest -> p("best") { +strings.missedOnlyDoesNotCount }

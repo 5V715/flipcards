@@ -136,7 +136,7 @@ class PlayViewTest {
         assertTrue("Anzahl Karten" in german.text)
         val result = SessionResult("en", HintMode.HINTED, 3, listOf("a"), score = 20)
         val spanish = play(PlayPhase.Summary(result), uiLanguage = "es")
-        assertEquals("2 de 3 acertadas a la primera", spanish.one("h1").textContent)
+        assertEquals("2 de 3 acertadas", spanish.one("h1").textContent)
         assertTrue(spanish.hasButton("Jugar otra vez"))
         assertEquals("(imagen) → Vienna", spanish.one("li.missed").textContent)
         // Without a translation, English.
@@ -294,7 +294,7 @@ class PlayViewTest {
 
     @Test fun summaryListsMissedCards() {
         val page = play(PlayPhase.Summary(SessionResult("en", HintMode.HINTED, 3, listOf("a", "c"))))
-        assertEquals("1 of 3 known first time", page.one("h1").textContent)
+        assertEquals("1 of 3 known", page.one("h1").textContent)
         assertTrue("Missed cards" in page.text)
         assertEquals(listOf("(image) → Vienna", "? → (image)"), page.all("li.missed").map { it.textContent })
         assertEquals("Back to stacks", page.one("a[href='#/']").textContent)
@@ -308,7 +308,7 @@ class PlayViewTest {
 
     @Test fun summaryWithNothingMissed() {
         val page = play(PlayPhase.Summary(SessionResult("en", HintMode.HINTED, 3, emptyList(), score = 30)))
-        assertEquals("3 of 3 known first time", page.one("h1").textContent)
+        assertEquals("3 of 3 known", page.one("h1").textContent)
         assertFalse("Missed cards" in page.text)
         assertFalse(page.hasButton("Play missed cards only"))
         assertEquals("Score: 30 of 30", page.one(".score").textContent)

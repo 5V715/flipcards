@@ -258,7 +258,7 @@ class EffectsTest {
         assertEquals(mapOf(1 to 5, 7 to 70), (h.current.screen as Screen.Play).bestScores)
         h.run(SessionStarted(1))
         h.run(AnswerSubmitted)
-        h.run(CardGraded(true)) // the only card, known first time with hints: 10 points
+        h.run(CardGraded(true)) // the only card, known with hints: 10 points
         assertEquals(mapOf(1 to 10, 7 to 70), h.env.bestScores["a"])
     }
 

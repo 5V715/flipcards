@@ -27,38 +27,36 @@ class SessionTest {
         assertEquals(1, next.step)
     }
 
-    @Test fun missedCardGoesToEnd() {
+    @Test fun missedCardIsNotAskedAgain() {
         val s = start()
         val next = s.grade(false)
-        assertEquals(s.queue.drop(1) + s.queue.first(), next.queue)
+        assertEquals(s.queue.drop(1), next.queue)
         assertEquals(listOf(s.queue.first()), next.missed)
     }
 
-    @Test fun missedTwiceCountsOnce() {
-        var s = startSession(listOf("a"), "en", HintMode.NONE, 1)
-        s = s.grade(false).grade(false)
-        assertEquals(listOf("a"), s.missed)
-        assertFalse(s.isFinished)
-        s = s.grade(true)
+    @Test fun aRoundIsOnePassEvenWhenNothingIsKnown() { // review: the game never ended
+        var s = start()
+        repeat(4) { s = s.grade(false) }
         assertTrue(s.isFinished)
-        assertEquals(0, s.result().knownFirstTime)
+        assertEquals(s.result().missed.toSet(), ids.toSet())
+        assertEquals(0, s.result().known)
     }
 
-    @Test fun scoreCountsFirstAttempts() {
+    @Test fun countsKnownCards() {
         var s = start()
-        s = s.grade(true).grade(false).grade(true).grade(true).grade(true) // 4 cards, one missed then known
+        s = s.grade(true).grade(false).grade(true).grade(true)
         assertTrue(s.isFinished)
-        assertEquals(3, s.result().knownFirstTime)
+        assertEquals(3, s.result().known)
         assertEquals(4, s.result().total)
     }
 
-    @Test fun hintChangesWhenACardReturns() {
+    @Test fun eachCardGetsItsOwnHint() {
         val stack = Stack(
             "s", "S", listOf("en"),
             listOf(Card("a", Side(SideText.Same("Austria")), Side(SideText.Same("Vienna Vienna Vienna")))),
         )
         val first = startSession(listOf("a"), "en", HintMode.HINTED, 3)
-        val hints = generateSequence(first) { it.grade(false) }.take(6).map { hintFor(stack, it)?.pattern() }.toSet()
+        val hints = (0..5).map { hintFor(stack, first.copy(step = it))?.pattern() }.toSet()
         assertTrue(hints.size > 1)
     }
 
@@ -69,10 +67,10 @@ class SessionTest {
         assertEquals("_ _ _ _ _ _", hintFor(stack, startSession(listOf("a"), "es", HintMode.LENGTH_ONLY, 1))?.pattern())
     }
 
-    @Test fun pointsOnlyForCardsKnownFirstTime() {
+    @Test fun pointsOnlyForKnownCards() {
         var s = start()
-        s = s.grade(true).grade(false).grade(true).grade(true).grade(true)
-        assertEquals(30, s.result().score) // 3 cards known first time, 10 points each with hints
+        s = s.grade(true).grade(false).grade(true).grade(true)
+        assertEquals(30, s.result().score) // 3 cards known, 10 points each with hints
     }
 
     @Test fun fewerHintsGiveMorePoints() {

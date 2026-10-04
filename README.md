@@ -107,10 +107,11 @@ Play (use a stack with a flag card, a text card and an incomplete card)
 - [ ] On every new card, typing fills the blanks straight away; on a phone, tapping the blanks opens the keyboard. Revealed letters and spaces are skipped, Backspace removes the last letter. Enter reveals. Typing `bogota` for `Bogotá` gives `Looks right`, and Enter then accepts `Knew it`.
 - [ ] With `No hint`, the typed answer appears on one line with a caret.
 - [ ] `Also show on the front` set to `de` shows the German text under the front text, and nothing extra when both read the same.
-- [ ] Each card known the first time scores 10, 20 or 30 points, by hint mode. After a round the summary shows `New best score!` when it beat the best for that number of cards, and setup shows `Best score` for the chosen number, also after a reload. `Play missed cards only` never changes the best score.
+- [ ] A round asks every card once, also the ones marked `Didn't know`, then shows the summary.
+- [ ] Each known card scores 10, 20 or 30 points, by hint mode. After a round the summary shows `New best score!` when it beat the best for that number of cards, and setup shows `Best score` for the chosen number, also after a reload. `Play missed cards only` never changes the best score.
 - [ ] A wrong answer puts the focus on `Didn't know`; choosing `Knew it` anyway works.
 - [ ] Switching the language in the middle of a card changes the hint and the revealed answer.
-- [ ] A missed card comes back. The summary counts it as missed, and `Play missed cards only` plays just that card.
+- [ ] A missed card does not come back in the same round. The summary lists it, and `Play missed cards only` plays just the missed cards.
 - [ ] A card whose back is only an image has no answer field and no suggestion.
 
 Layout

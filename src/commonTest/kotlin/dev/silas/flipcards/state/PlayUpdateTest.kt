@@ -101,13 +101,9 @@ class PlayUpdateTest {
         assertNull((update(update(asked, AnswerTyped("x")), AnswerSubmitted).phase as PlayPhase.Revealed).suggestion)
     }
 
-    @Test fun missedCardComesBack() {
+    @Test fun aMissedCardEndsTheRoundWhenItIsTheLast() {
         var s = update(setup(), SessionStarted(1, listOf("b")))
         s = update(update(s, AnswerSubmitted), CardGraded(false))
-        val again = s.phase as PlayPhase.Asking
-        assertEquals(listOf("b"), again.session.queue)
-        assertEquals("", again.typed)
-        s = update(update(s, AnswerSubmitted), CardGraded(true))
         assertEquals(listOf("b"), (s.phase as PlayPhase.Summary).result.missed)
     }
 
@@ -126,7 +122,6 @@ class PlayUpdateTest {
     @Test fun replayFromSummary() {
         var s = update(setup("de", HintMode.NONE), SessionStarted(1, listOf("a", "b")))
         repeat(2) { s = update(update(s, AnswerSubmitted), CardGraded(it == 0)) } // first known, second missed
-        s = update(update(s, AnswerSubmitted), CardGraded(true))
         val missed = (s.phase as PlayPhase.Summary).result.missed
         assertEquals(1, missed.size)
         val again = update(s, SessionStarted(2, missed)).phase as PlayPhase.Asking
@@ -175,7 +170,7 @@ class PlayUpdateTest {
     }
 
     @Test fun playAgainKeepsTheCardCountButMissedOnlyPlaysAllMissed() {
-        var s = playThrough(update(update(setup(), CardCountChosen(2)), SessionStarted(1)), firstTime = false)
+        var s = playThrough(update(update(setup(), CardCountChosen(2)), SessionStarted(1)), knew = false)
         val summary = s.phase as PlayPhase.Summary
         assertEquals(2, summary.result.missed.size)
         assertEquals(2, (update(s, SessionStarted(2)).phase as PlayPhase.Asking).session.total)
@@ -212,32 +207,29 @@ class PlayUpdateTest {
         assertEquals(true, (s.phase as PlayPhase.Revealed).suggestion)
     }
 
-    /** Plays to the summary. Cards are known when they come back, and also the first time if [firstTime]. */
-    private fun playThrough(state: AppState, firstTime: Boolean): AppState {
+    /** Plays to the summary, marking every card as known or every card as missed. */
+    private fun playThrough(state: AppState, knew: Boolean): AppState {
         var s = state
-        while (true) {
-            val asking = s.phase as? PlayPhase.Asking ?: return s
-            val returning = asking.session.queue.first() in asking.session.missed
-            s = update(update(s, AnswerSubmitted), CardGraded(firstTime || returning))
-        }
+        while (s.phase is PlayPhase.Asking) s = update(update(s, AnswerSubmitted), CardGraded(knew))
+        return s
     }
 
     @Test fun aFullRoundSetsTheBestScore() {
-        val first = playThrough(update(setup(), SessionStarted(1)), firstTime = true) // 3 cards × 20
+        val first = playThrough(update(setup(), SessionStarted(1)), knew = true) // 3 cards × 20
         assertEquals(mapOf(3 to 60), (first.screen as Screen.Play).bestScores)
         assertNull((first.phase as PlayPhase.Summary).previousBest)
 
-        val worse = playThrough(update(first, SessionStarted(2)), firstTime = false)
+        val worse = playThrough(update(first, SessionStarted(2)), knew = false)
         assertEquals(0, (worse.phase as PlayPhase.Summary).result.score)
         assertEquals(60, (worse.phase as PlayPhase.Summary).previousBest)
         assertEquals(mapOf(3 to 60), (worse.screen as Screen.Play).bestScores)
     }
 
     @Test fun shorterRoundsHaveTheirOwnBestScore() {
-        val full = playThrough(update(setup(), SessionStarted(1)), firstTime = true)
+        val full = playThrough(update(setup(), SessionStarted(1)), knew = true)
         val oneCard = PlayPhase.Setup("en", HintMode.LENGTH_ONLY, cardCount = 1)
         val backInSetup = full.copy(screen = (full.screen as Screen.Play).copy(phase = oneCard))
-        val done = playThrough(update(backInSetup, SessionStarted(2)), firstTime = true)
+        val done = playThrough(update(backInSetup, SessionStarted(2)), knew = true)
         assertNull((done.phase as PlayPhase.Summary).previousBest)
         assertEquals(mapOf(3 to 60, 1 to 20), (done.screen as Screen.Play).bestScores)
         assertEquals(20, (done.screen as Screen.Play).bestFor(1))
@@ -245,7 +237,7 @@ class PlayUpdateTest {
     }
 
     @Test fun aRoundWithSomeCardsDoesNotSetTheBestScore() {
-        val s = playThrough(update(setup(), SessionStarted(1, listOf("b"))), firstTime = true)
+        val s = playThrough(update(setup(), SessionStarted(1, listOf("b"))), knew = true)
         assertEquals(20, (s.phase as PlayPhase.Summary).result.score)
         assertEquals(emptyMap(), (s.screen as Screen.Play).bestScores)
     }

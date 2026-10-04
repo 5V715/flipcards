@@ -23,7 +23,7 @@ snap cannot read `/tmp`.
 
 ## Sample stacks
 
-`samples/` has three stacks. In the app, `Samples` on the stack list shows every
+`samples/` has four stacks. In the app, `Samples` on the stack list shows every
 `.flipcards.json` file in the `samples/` folder on the `main` branch on GitHub, and `Add` imports
 one. A file pushed there shows up the next time the list is opened, without a new release of the
 app. The list comes from GitHub's API, which allows 60 requests an hour per network without a login.
@@ -31,13 +31,18 @@ The files can also be imported by hand:
 
 - `country-shapes.flipcards.json`: the outlines of 165 countries, answer with the name, in English,
   German, French or Spanish. Pick how many cards to play in the setup.
+- `world-capitals.flipcards.json`: all 193 UN member states, with the country's name and outline,
+  answer with the capital, in English, German, French or Spanish. For countries with more than one
+  capital it asks for the official one (Sucre, Porto-Novo, Sri Jayawardenepura Kotte), else the seat
+  of government (Mbabane).
 - `european-capitals.flipcards.json`: flags and country names, answer with the capital, in English,
   German, French or Spanish
 - `spanish-basic-words.flipcards.json`: 30 everyday words in English, German or French, answer in Spanish
 
 The country outlines come from [Natural Earth](https://www.naturalearthdata.com/) (public domain)
 through the [world-atlas](https://github.com/topojson/world-atlas) package. `samples/tools/` has the
-scripts that made the stack; how to run them is at the top of `country-shapes-svg.mjs`.
+scripts that made the country shapes and world capitals stacks; how to run them is at the top of
+`country-shapes-svg.mjs` and `world-capitals-stack.cjs`.
 
 ## Languages
 

@@ -1,9 +1,17 @@
 package dev.silas.flipcards.browser
 
 import dev.silas.flipcards.effects.Env
+import dev.silas.flipcards.i18n.uiLanguageOf
+import dev.silas.flipcards.model.FlipJson
 import dev.silas.flipcards.state.Route
 import dev.silas.flipcards.state.toHash
 import dev.silas.flipcards.storage.Storage
+import kotlin.coroutines.resume
+import kotlin.js.Promise
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.random.Random
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
@@ -17,12 +25,6 @@ import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
-import kotlin.coroutines.resume
-import kotlin.js.Promise
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
-import kotlin.random.Random
 
 fun newId(): String {
     val crypto = window.asDynamic().crypto
@@ -81,9 +83,27 @@ private suspend fun loadImage(url: String): HTMLImageElement? = suspendCancellab
     image.src = url
 }
 
+private const val UI_LANGUAGE_KEY = "flipcards.uiLanguage"
+
+/** The interface language picked last; before the first pick, the browser's language if the app has it. */
+fun loadStoredUiLanguage(): String? {
+    val stored = try {
+        localStorage.getItem(UI_LANGUAGE_KEY)
+    } catch (e: Throwable) {
+        null
+    }
+    return stored ?: uiLanguageOf(window.navigator.language)
+}
+
 /** The real [Env]: IndexedDB, downloads, the URL hash and localStorage. */
 class BrowserEnv(override val storage: Storage) : Env {
     override fun newId(): String = dev.silas.flipcards.browser.newId()
+
+    override suspend fun fetchText(url: String): String {
+        val response = window.fetch(url).await()
+        if (!response.ok) throw IllegalStateException("HTTP ${response.status}")
+        return response.text().await()
+    }
 
     override fun download(fileName: String, text: String) = downloadText(fileName, text)
 
@@ -106,5 +126,30 @@ class BrowserEnv(override val storage: Storage) : Env {
         }
     }
 
+    override fun loadBestScores(stackId: String): Map<Int, Int> =
+        try {
+            localStorage.getItem(bestScoresKey(stackId))?.let { FlipJson.decodeFromString<Map<Int, Int>>(it) }.orEmpty()
+        } catch (e: Throwable) {
+            emptyMap()
+        }
+
+    override fun saveBestScores(stackId: String, scores: Map<Int, Int>) {
+        try {
+            localStorage.setItem(bestScoresKey(stackId), FlipJson.encodeToString(scores))
+        } catch (e: Throwable) {
+        }
+    }
+
+    override fun loadUiLanguage(): String? = loadStoredUiLanguage()
+
+    override fun saveUiLanguage(code: String) {
+        try {
+            localStorage.setItem(UI_LANGUAGE_KEY, code)
+        } catch (e: Throwable) {
+        }
+    }
+
     private fun playLanguageKey(stackId: String) = "flipcards.playLanguage.$stackId"
+
+    private fun bestScoresKey(stackId: String) = "flipcards.bestScores.$stackId"
 }

@@ -7,9 +7,20 @@ class FakeEnv(override val storage: InMemoryStorage = InMemoryStorage()) : Env {
     val downloads = mutableListOf<Pair<String, String>>()
     val navigations = mutableListOf<Route>()
     val playLanguages = mutableMapOf<String, String>()
+    val bestScores = mutableMapOf<String, Map<Int, Int>>()
+    var uiLanguage: String? = null
     private var ids = 0
 
     override fun newId(): String = "id${++ids}"
+
+    /** What fetchText answers, by URL; any other URL fails like a network error. */
+    val web = mutableMapOf<String, String>()
+    val fetched = mutableListOf<String>()
+
+    override suspend fun fetchText(url: String): String {
+        fetched += url
+        return web[url] ?: throw IllegalStateException("offline")
+    }
 
     override fun download(fileName: String, text: String) {
         downloads += fileName to text
@@ -23,5 +34,17 @@ class FakeEnv(override val storage: InMemoryStorage = InMemoryStorage()) : Env {
 
     override fun savePlayLanguage(stackId: String, language: String) {
         playLanguages[stackId] = language
+    }
+
+    override fun loadBestScores(stackId: String): Map<Int, Int> = bestScores[stackId].orEmpty()
+
+    override fun saveBestScores(stackId: String, scores: Map<Int, Int>) {
+        bestScores[stackId] = scores
+    }
+
+    override fun loadUiLanguage(): String? = uiLanguage
+
+    override fun saveUiLanguage(code: String) {
+        uiLanguage = code
     }
 }

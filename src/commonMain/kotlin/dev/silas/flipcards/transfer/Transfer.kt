@@ -1,5 +1,7 @@
 package dev.silas.flipcards.transfer
 
+import dev.silas.flipcards.i18n.English
+import dev.silas.flipcards.i18n.ImportProblem
 import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.FlipJson
 import dev.silas.flipcards.model.Side
@@ -26,7 +28,9 @@ data class ExportFile(
     val images: Map<String, String>,
 )
 
-class ImportException(message: String) : Exception(message)
+/** [message] is in English; the app shows [problem] in the interface language. */
+class ImportException(val problem: ImportProblem, val cardNumber: Int? = null) :
+    Exception(English.importProblem(problem, cardNumber))
 
 // format and version have default values, which are only written when encodeDefaults is on.
 private val exportJson = Json(FlipJson) { encodeDefaults = true }
@@ -42,26 +46,24 @@ fun buildExport(stack: Stack, images: Map<String, String>): ExportFile {
 
 fun encodeExport(file: ExportFile): String = exportJson.encodeToString(file)
 
-private const val NOT_A_STACK_FILE = "This is not a Flipcards stack file."
-
 /** Checks the whole file before anything is stored. Throws [ImportException] with a message for the user. */
 fun parseImport(text: String): ExportFile {
     val json = try {
         FlipJson.parseToJsonElement(text) as? JsonObject
     } catch (e: Exception) {
         null
-    } ?: throw ImportException(NOT_A_STACK_FILE)
+    } ?: throw ImportException(ImportProblem.NOT_A_STACK_FILE)
 
-    if ((json["format"] as? JsonPrimitive)?.content != EXPORT_FORMAT) throw ImportException(NOT_A_STACK_FILE)
-    val version = (json["version"] as? JsonPrimitive)?.intOrNull ?: throw ImportException(NOT_A_STACK_FILE)
+    if ((json["format"] as? JsonPrimitive)?.content != EXPORT_FORMAT) throw ImportException(ImportProblem.NOT_A_STACK_FILE)
+    val version = (json["version"] as? JsonPrimitive)?.intOrNull ?: throw ImportException(ImportProblem.NOT_A_STACK_FILE)
     // Checked before decoding: a newer format may not fit this version's model at all.
-    if (version > EXPORT_VERSION) throw ImportException("This file was made by a newer version of the app.")
-    if (version < 1) throw ImportException(NOT_A_STACK_FILE)
+    if (version > EXPORT_VERSION) throw ImportException(ImportProblem.NEWER_VERSION)
+    if (version < 1) throw ImportException(ImportProblem.NOT_A_STACK_FILE)
 
     val file = try {
         FlipJson.decodeFromJsonElement<ExportFile>(json)
     } catch (e: Exception) {
-        throw ImportException(NOT_A_STACK_FILE)
+        throw ImportException(ImportProblem.NOT_A_STACK_FILE)
     }
     validate(file)
     return file
@@ -69,21 +71,21 @@ fun parseImport(text: String): ExportFile {
 
 private fun validate(file: ExportFile) {
     val stack = file.stack
-    if (stack.name.isBlank()) throw ImportException("The stack has no name.")
-    if (stack.languages.isEmpty()) throw ImportException("The stack has no languages.")
+    if (stack.name.isBlank()) throw ImportException(ImportProblem.NO_NAME)
+    if (stack.languages.isEmpty()) throw ImportException(ImportProblem.NO_LANGUAGES)
     // Codes with surrounding spaces are refused too: " en" would later sit next to a typed "en".
     val codes = stack.languages
     if (codes.any { it.isEmpty() || it != it.trim() } || codes.toSet().size != codes.size) {
-        throw ImportException("The stack has invalid language codes.")
+        throw ImportException(ImportProblem.INVALID_LANGUAGES)
     }
     stack.cards.forEachIndexed { index, card ->
         val number = index + 1
-        if (!card.isComplete(stack.languages.first())) throw ImportException("Card $number is incomplete.")
-        if (card.imageIds.any { it !in file.images }) throw ImportException("Card $number refers to a missing image.")
+        if (!card.isComplete(stack.languages.first())) throw ImportException(ImportProblem.CARD_INCOMPLETE, number)
+        if (card.imageIds.any { it !in file.images }) throw ImportException(ImportProblem.CARD_MISSING_IMAGE, number)
     }
     // Only embedded images are allowed, so a file cannot bring in links or script URLs.
     if (file.images.values.any { !it.startsWith("data:image/") }) {
-        throw ImportException("The file contains invalid image data.")
+        throw ImportException(ImportProblem.INVALID_IMAGE)
     }
 }
 

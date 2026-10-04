@@ -6,7 +6,9 @@
     "name": "European capitals",
     "languages": [
       "en",
-      "de"
+      "de",
+      "fr",
+      "es"
     ],
     "cards": [
       {
@@ -19,7 +21,9 @@
             "type": "translated",
             "values": {
               "en": "Vienna",
-              "de": "Wien"
+              "de": "Wien",
+              "fr": "Vienne",
+              "es": "Viena"
             }
           }
         }
@@ -34,7 +38,9 @@
             "type": "translated",
             "values": {
               "en": "Berlin",
-              "de": "Berlin"
+              "de": "Berlin",
+              "fr": "Berlin",
+              "es": "Berlín"
             }
           }
         }
@@ -49,7 +55,9 @@
             "type": "translated",
             "values": {
               "en": "Paris",
-              "de": "Paris"
+              "de": "Paris",
+              "fr": "Paris",
+              "es": "París"
             }
           }
         }
@@ -64,7 +72,9 @@
             "type": "translated",
             "values": {
               "en": "Rome",
-              "de": "Rom"
+              "de": "Rom",
+              "fr": "Rome",
+              "es": "Roma"
             }
           }
         }
@@ -79,7 +89,9 @@
             "type": "translated",
             "values": {
               "en": "Amsterdam",
-              "de": "Amsterdam"
+              "de": "Amsterdam",
+              "fr": "Amsterdam",
+              "es": "Ámsterdam"
             }
           }
         }
@@ -94,7 +106,9 @@
             "type": "translated",
             "values": {
               "en": "Warsaw",
-              "de": "Warschau"
+              "de": "Warschau",
+              "fr": "Varsovie",
+              "es": "Varsovia"
             }
           }
         }
@@ -109,7 +123,9 @@
             "type": "translated",
             "values": {
               "en": "Kyiv",
-              "de": "Kiew"
+              "de": "Kiew",
+              "fr": "Kiev",
+              "es": "Kiev"
             }
           }
         }
@@ -121,7 +137,9 @@
             "type": "translated",
             "values": {
               "en": "Spain",
-              "de": "Spanien"
+              "de": "Spanien",
+              "fr": "Espagne",
+              "es": "España"
             }
           }
         },
@@ -130,7 +148,9 @@
             "type": "translated",
             "values": {
               "en": "Madrid",
-              "de": "Madrid"
+              "de": "Madrid",
+              "fr": "Madrid",
+              "es": "Madrid"
             }
           }
         }
@@ -142,7 +162,9 @@
             "type": "translated",
             "values": {
               "en": "Portugal",
-              "de": "Portugal"
+              "de": "Portugal",
+              "fr": "Portugal",
+              "es": "Portugal"
             }
           }
         },
@@ -151,7 +173,9 @@
             "type": "translated",
             "values": {
               "en": "Lisbon",
-              "de": "Lissabon"
+              "de": "Lissabon",
+              "fr": "Lisbonne",
+              "es": "Lisboa"
             }
           }
         }
@@ -163,7 +187,9 @@
             "type": "translated",
             "values": {
               "en": "Greece",
-              "de": "Griechenland"
+              "de": "Griechenland",
+              "fr": "Grèce",
+              "es": "Grecia"
             }
           }
         },
@@ -172,7 +198,9 @@
             "type": "translated",
             "values": {
               "en": "Athens",
-              "de": "Athen"
+              "de": "Athen",
+              "fr": "Athènes",
+              "es": "Atenas"
             }
           }
         }
@@ -184,7 +212,9 @@
             "type": "translated",
             "values": {
               "en": "Czechia",
-              "de": "Tschechien"
+              "de": "Tschechien",
+              "fr": "Tchéquie",
+              "es": "Chequia"
             }
           }
         },
@@ -193,7 +223,9 @@
             "type": "translated",
             "values": {
               "en": "Prague",
-              "de": "Prag"
+              "de": "Prag",
+              "fr": "Prague",
+              "es": "Praga"
             }
           }
         }
@@ -205,7 +237,9 @@
             "type": "translated",
             "values": {
               "en": "Denmark",
-              "de": "Dänemark"
+              "de": "Dänemark",
+              "fr": "Danemark",
+              "es": "Dinamarca"
             }
           }
         },
@@ -214,7 +248,9 @@
             "type": "translated",
             "values": {
               "en": "Copenhagen",
-              "de": "Kopenhagen"
+              "de": "Kopenhagen",
+              "fr": "Copenhague",
+              "es": "Copenhague"
             }
           }
         }

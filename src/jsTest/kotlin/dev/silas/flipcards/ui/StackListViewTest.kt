@@ -1,6 +1,7 @@
 package dev.silas.flipcards.ui
 
 import dev.silas.flipcards.model.StackSummary
+import dev.silas.flipcards.samples.Sample
 import dev.silas.flipcards.state.Action
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.DeleteStackConfirmed
@@ -8,11 +9,20 @@ import dev.silas.flipcards.state.ErrorDismissed
 import dev.silas.flipcards.state.ExportRequested
 import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.Route
+import dev.silas.flipcards.state.SampleChosen
+import dev.silas.flipcards.state.SamplesClosed
+import dev.silas.flipcards.state.SamplesPanel
+import dev.silas.flipcards.state.SamplesRequested
 import dev.silas.flipcards.state.Screen
+import dev.silas.flipcards.state.UiLanguageChosen
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.w3c.dom.EventInit
+import org.w3c.dom.HTMLSelectElement
+import org.w3c.dom.asList
+import org.w3c.dom.events.Event
 
 class StackListViewTest {
     private val alpha = StackSummary("a", "Alpha", listOf("en", "de"), 1)
@@ -87,4 +97,58 @@ class StackListViewTest {
         assertTrue("Page not found." in notFound.text)
         assertEquals("Back to stacks", notFound.one("a[href='#/']").textContent)
     }
+
+    @Test fun interfaceLanguageCanBePicked() {
+        val page = list(alpha)
+        val select = page.field("Language") as HTMLSelectElement
+        assertEquals("en", select.value)
+        assertEquals(listOf("English", "Deutsch", "Español", "Français"), select.options.asList().map { it.textContent })
+        select.value = "fr"
+        select.dispatchEvent(Event("change", EventInit(bubbles = true)))
+        assertEquals(listOf<Action>(UiLanguageChosen("fr")), page.dispatched)
+    }
+
+    @Test fun listInGerman() {
+        val page = mount(AppState(Route.Home, Screen.StackList(listOf(alpha, beta)), uiLanguage = "de"))
+        assertTrue(page.hasButton("Neuer Stapel"))
+        assertTrue("1 Karte · en, de" in page.text)
+        assertTrue("2 Karten · en" in page.text)
+        assertEquals("Spielen", page.one("a[href='#/stack/a/play']").textContent)
+        assertEquals("Deutsch", (page.field("Sprache") as HTMLSelectElement).selectedOptions.asList().single().textContent)
+    }
+
+    private val shapes = Sample("country-shapes.flipcards.json", "https://raw.example/shapes", 435000)
+    private val words = Sample("spanish-basic-words.flipcards.json", "https://raw.example/words", 10700)
+
+    private fun withSamples(panel: SamplesPanel?) = mount(AppState(Route.Home, Screen.StackList(listOf(alpha), panel)))
+
+    @Test fun samplesButtonOpensAndClosesTheList() {
+        val closed = withSamples(null)
+        assertEquals("false", closed.button("Samples").getAttribute("aria-expanded"))
+        assertFalse(closed.exists("#samples"))
+        closed.button("Samples").click()
+        val open = withSamples(SamplesPanel.Loading)
+        assertEquals("true", open.button("Samples").getAttribute("aria-expanded"))
+        assertTrue("Loading the samples…" in open.one("#samples").textContent!!)
+        open.button("Samples").click()
+        assertEquals(listOf<Action>(SamplesRequested), closed.dispatched)
+        assertEquals(listOf<Action>(SamplesClosed), open.dispatched)
+    }
+
+    @Test fun samplesAreListedWithAnAddButton() {
+        val panel = SamplesPanel.Loaded(listOf(shapes, words), adding = setOf(words.fileName), added = setOf(shapes.fileName))
+        val page = withSamples(panel)
+        assertEquals(listOf("Country shapes", "Spanish basic words"), page.all(".sample h3").map { it.textContent })
+        assertTrue("425 KB" in page.one(".sample").textContent!!)
+        assertEquals("✓ Added", page.one(".sample .added").textContent)
+        assertTrue(page.one("a.samples-source").getAttribute("href")!!.startsWith("https://github.com/"))
+
+        page.button("Add").click()
+        page.button("Adding…").click() // already downloading: ignored
+        assertEquals("true", page.button("Adding…").getAttribute("aria-disabled"))
+        assertEquals(listOf<Action>(SampleChosen(shapes)), page.dispatched)
+    }
+
+    @Test fun emptySamplesFolder() =
+        assertTrue("There are no samples in the folder." in withSamples(SamplesPanel.Loaded(emptyList())).text)
 }

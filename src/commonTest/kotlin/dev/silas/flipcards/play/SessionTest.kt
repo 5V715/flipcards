@@ -58,14 +58,32 @@ class SessionTest {
             listOf(Card("a", Side(SideText.Same("Austria")), Side(SideText.Same("Vienna Vienna Vienna")))),
         )
         val first = startSession(listOf("a"), "en", HintMode.HINTED, 3)
-        val hints = generateSequence(first) { it.grade(false) }.take(6).map { hintFor(stack, it) }.toSet()
+        val hints = generateSequence(first) { it.grade(false) }.take(6).map { hintFor(stack, it)?.pattern() }.toSet()
         assertTrue(hints.size > 1)
     }
 
     @Test fun hintUsesPlayLanguageWithFallback() {
         val back = Side(SideText.Translated(mapOf("en" to "Vienna", "de" to "Wien")))
         val stack = Stack("s", "S", listOf("en", "de"), listOf(Card("a", Side(imageId = "i"), back)))
-        assertEquals("_ _ _ _", hintFor(stack, startSession(listOf("a"), "de", HintMode.LENGTH_ONLY, 1)))
-        assertEquals("_ _ _ _ _ _", hintFor(stack, startSession(listOf("a"), "es", HintMode.LENGTH_ONLY, 1)))
+        assertEquals("_ _ _ _", hintFor(stack, startSession(listOf("a"), "de", HintMode.LENGTH_ONLY, 1))?.pattern())
+        assertEquals("_ _ _ _ _ _", hintFor(stack, startSession(listOf("a"), "es", HintMode.LENGTH_ONLY, 1))?.pattern())
+    }
+
+    @Test fun pointsOnlyForCardsKnownFirstTime() {
+        var s = start()
+        s = s.grade(true).grade(false).grade(true).grade(true).grade(true)
+        assertEquals(30, s.result().score) // 3 cards known first time, 10 points each with hints
+    }
+
+    @Test fun fewerHintsGiveMorePoints() {
+        assertEquals(20, startSession(listOf("a"), "en", HintMode.LENGTH_ONLY, 1).grade(true).score)
+        assertEquals(30, startSession(listOf("a"), "en", HintMode.NONE, 1).grade(true).score)
+    }
+
+    @Test fun resultCarriesSecondLanguageAndWhetherItCounts() {
+        val result = startSession(listOf("a"), "en", HintMode.NONE, 1, secondLanguage = "de", countsForBest = false)
+            .grade(true).result()
+        assertEquals("de", result.secondLanguage)
+        assertFalse(result.countsForBest)
     }
 }

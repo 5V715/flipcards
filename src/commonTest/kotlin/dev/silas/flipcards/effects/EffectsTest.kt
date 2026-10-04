@@ -1,14 +1,20 @@
 package dev.silas.flipcards.effects
 
+import dev.silas.flipcards.i18n.English
+import dev.silas.flipcards.i18n.German
 import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.model.summary
+import dev.silas.flipcards.samples.SAMPLES_LISTING_URL
+import dev.silas.flipcards.samples.Sample
 import dev.silas.flipcards.state.Action
+import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.CardDeleted
+import dev.silas.flipcards.state.CardGraded
 import dev.silas.flipcards.state.DeleteStackConfirmed
 import dev.silas.flipcards.state.EditorLoaded
 import dev.silas.flipcards.state.ErrorRaised
@@ -22,26 +28,31 @@ import dev.silas.flipcards.state.NewStackRequested
 import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayLoaded
 import dev.silas.flipcards.state.Route
+import dev.silas.flipcards.state.SampleChosen
+import dev.silas.flipcards.state.SamplesPanel
+import dev.silas.flipcards.state.SamplesRequested
+import dev.silas.flipcards.state.Screen
+import dev.silas.flipcards.state.SessionStarted
 import dev.silas.flipcards.state.StackListLoaded
 import dev.silas.flipcards.state.StackMissing
 import dev.silas.flipcards.state.StackRenamed
 import dev.silas.flipcards.state.StackSaveFailed
 import dev.silas.flipcards.state.StackSaved
+import dev.silas.flipcards.state.UiLanguageChosen
 import dev.silas.flipcards.state.update
 import dev.silas.flipcards.transfer.buildExport
 import dev.silas.flipcards.transfer.encodeExport
 import dev.silas.flipcards.transfer.parseImport
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import dev.silas.flipcards.state.Screen
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EffectsTest {
@@ -239,6 +250,55 @@ class EffectsTest {
         assertEquals("de", h.env.playLanguages["a"])
     }
 
+    @Test fun bestScoreIsLoadedAndSaved() = runTest {
+        val h = harness()
+        h.env.bestScores["a"] = mapOf(1 to 5, 7 to 70)
+        h.run(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        assertEquals(mapOf(1 to 5, 7 to 70), (h.current.screen as Screen.Play).bestScores)
+        h.run(SessionStarted(1))
+        h.run(AnswerSubmitted)
+        h.run(CardGraded(true)) // the only card, known first time with hints: 10 points
+        assertEquals(mapOf(1 to 10, 7 to 70), h.env.bestScores["a"])
+    }
+
+    @Test fun aLowerScoreKeepsTheBest() = runTest {
+        val h = harness()
+        h.env.bestScores["a"] = mapOf(1 to 50)
+        h.run(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        h.run(SessionStarted(1))
+        h.run(AnswerSubmitted)
+        h.run(CardGraded(true))
+        assertEquals(mapOf(1 to 50), h.env.bestScores["a"])
+    }
+
+    @Test fun pickingAPlayLanguageSavesTheInterfaceLanguage() = runTest {
+        val h = harness()
+        h.run(Navigate(Route.Play("a")))
+        advanceUntilIdle()
+        h.run(PlayLanguageChosen("de"))
+        assertEquals("de", h.env.uiLanguage)
+        h.run(UiLanguageChosen("fr"))
+        assertEquals("fr", h.env.uiLanguage)
+    }
+
+    @Test fun messagesAreInTheInterfaceLanguage() = runTest {
+        val h = harness()
+        h.run(UiLanguageChosen("de"))
+        h.run(ImportFileRead("{}"))
+        advanceUntilIdle()
+        assertEquals(listOf<Action>(ErrorRaised("Das ist keine Flipcards-Stapeldatei.")), h.dispatched)
+    }
+
+    @Test fun aNewStackIsNamedInTheInterfaceLanguage() = runTest {
+        val h = harness(withStackA = false)
+        h.run(UiLanguageChosen("es"))
+        h.run(NewStackRequested)
+        advanceUntilIdle()
+        assertEquals("Nuevo mazo", h.storage.stacks.values.single().name)
+    }
+
     @Test fun leavingTheEditorStillNavigatesWhenTheSaveFails() = runTest { // review I1
         val h = editing()
         h.storage.failSaves = true
@@ -248,5 +308,70 @@ class EffectsTest {
         assertTrue(ErrorRaised("Could not save: full") in h.dispatched)
         assertTrue(h.current.screen is Screen.StackList)
         assertEquals("Could not save: full", h.current.error)
+    }
+
+    private val sample = Sample("alpha.flipcards.json", "https://raw.example/alpha.flipcards.json", 100)
+
+    private val listing = """[{"name": "alpha.flipcards.json", "type": "file", "size": 100, "download_url": "${sample.url}"}]"""
+
+    private fun TestScope.onTheList() = harness().apply {
+        run(Navigate(Route.Home))
+        advanceUntilIdle()
+        dispatched.clear()
+    }
+
+    /** On the list, with the samples panel open and listing [sample]. */
+    private fun TestScope.withSamples() = onTheList().apply {
+        env.web[SAMPLES_LISTING_URL] = listing
+        run(SamplesRequested)
+        advanceUntilIdle()
+    }
+
+    @Test fun samplesAreListedFromTheRepository() = runTest {
+        val h = onTheList()
+        h.env.web[SAMPLES_LISTING_URL] = listing
+        h.run(SamplesRequested)
+        assertEquals(SamplesPanel.Loading, (h.current.screen as Screen.StackList).samples)
+        advanceUntilIdle()
+        assertEquals(SamplesPanel.Loaded(listOf(sample)), (h.current.screen as Screen.StackList).samples)
+    }
+
+    @Test fun samplesOffline() = runTest {
+        val h = onTheList()
+        h.run(SamplesRequested)
+        advanceUntilIdle()
+        assertEquals(null, (h.current.screen as Screen.StackList).samples)
+        assertEquals(English.samplesUnavailable, h.current.error)
+    }
+
+    @Test fun addingASampleImportsIt() = runTest {
+        val h = withSamples()
+        h.env.web[sample.url] = encodeExport(buildExport(stackA.copy(name = "Sample stack"), mapOf("i1" to url)))
+        h.run(SampleChosen(sample))
+        val adding = ((h.current.screen as Screen.StackList).samples as SamplesPanel.Loaded).adding
+        assertEquals(setOf(sample.fileName), adding)
+        advanceUntilIdle()
+        assertTrue(h.storage.stacks.values.any { it.name == "Sample stack" })
+        val list = h.current.screen as Screen.StackList
+        assertEquals(2, list.stacks.size)
+        assertEquals(SamplesPanel.Loaded(listOf(sample), added = setOf(sample.fileName)), list.samples)
+    }
+
+    @Test fun aSampleThatFailsToDownloadIsNotLeftAdding() = runTest {
+        val h = withSamples()
+        h.run(UiLanguageChosen("de"))
+        h.run(SampleChosen(sample))
+        advanceUntilIdle()
+        assertEquals(SamplesPanel.Loaded(listOf(sample)), (h.current.screen as Screen.StackList).samples)
+        assertEquals(German.sampleDownloadFailed, h.current.error)
+    }
+
+    @Test fun aSampleThatIsNotAStackShowsWhy() = runTest {
+        val h = withSamples()
+        h.env.web[sample.url] = "{}"
+        h.run(SampleChosen(sample))
+        advanceUntilIdle()
+        assertEquals(SamplesPanel.Loaded(listOf(sample)), (h.current.screen as Screen.StackList).samples)
+        assertEquals("This is not a Flipcards stack file.", h.current.error)
     }
 }

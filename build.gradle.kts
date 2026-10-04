@@ -13,17 +13,14 @@ kotlin {
         browser {
             commonWebpackConfig { outputFileName = "flipcards.js" }
             testTask {
-                val chrome = providers.gradleProperty("testBrowser").orNull == "chrome"
-                useKarma {
-                    if (chrome) useChromeHeadless() else useFirefoxHeadless()
-                }
-                if (!chrome) {
-                    // Firefox installed as a snap cannot read /tmp or hidden folders,
-                    // so Karma's temporary profile has to live inside the project.
-                    val firefoxTmp = layout.buildDirectory.dir("firefox-tmp").get().asFile
-                    environment("TMPDIR", firefoxTmp.absolutePath)
-                    doFirst { firefoxTmp.mkdirs() }
-                }
+                // The same browser locally and on CI: choosing another one changes the npm
+                // dependencies, and the build then fails because kotlin-js-store/yarn.lock no longer matches.
+                useKarma { useFirefoxHeadless() }
+                // Firefox installed as a snap cannot read /tmp or hidden folders,
+                // so Karma's temporary profile has to live inside the project.
+                val firefoxTmp = layout.buildDirectory.dir("firefox-tmp").get().asFile
+                environment("TMPDIR", firefoxTmp.absolutePath)
+                doFirst { firefoxTmp.mkdirs() }
             }
         }
         binaries.executable()

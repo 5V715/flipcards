@@ -17,9 +17,9 @@ You need a JDK (17 or newer). Everything else is downloaded by the Gradle wrappe
 | One test class | `./gradlew jsBrowserTest --tests "dev.silas.flipcards.model.ModelTest"` |
 | Production build | `./gradlew jsBrowserDistribution` (output in `build/dist/js/productionExecutable`) |
 
-The tests run in a real browser through Karma: headless Firefox by default, or headless
-Chrome with `-PtestBrowser=chrome`. For Firefox the build points `TMPDIR` at
-`build/firefox-tmp`, because a Firefox installed as a snap cannot read `/tmp`.
+The tests run in a real browser through Karma, in headless Firefox, both locally and on
+CI. The build points `TMPDIR` at `build/firefox-tmp`, because a Firefox installed as a
+snap cannot read `/tmp`.
 
 ## Sample stacks
 

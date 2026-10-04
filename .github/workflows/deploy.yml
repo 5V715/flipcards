@@ -25,7 +25,7 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v6
       # A failing test fails this step, so nothing broken gets published.
-      - run: ./gradlew jsBrowserTest -PtestBrowser=chrome jsBrowserDistribution
+      - run: ./gradlew jsBrowserTest jsBrowserDistribution
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

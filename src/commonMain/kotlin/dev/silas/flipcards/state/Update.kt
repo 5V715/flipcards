@@ -19,7 +19,7 @@ fun update(state: AppState, action: Action): AppState = when (action) {
             state
         }
 
-    is PlayLoaded -> state
+    is PlayLoaded -> playLoaded(state, action)
 
     is StackMissing ->
         if (state.route == Route.Edit(action.stackId) || state.route == Route.Play(action.stackId)) {

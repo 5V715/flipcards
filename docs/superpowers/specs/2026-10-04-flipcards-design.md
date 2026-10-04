@@ -23,6 +23,7 @@ building a small but complete flashcard app. Success means:
 - Playing is typed-answer with self-grading: the app suggests right or wrong, the player
   has the last word.
 - Three hint modes: hinted (`_ i _ _ _ a`), length only (`_ _ _ _ _ _`), no hint.
+- The interface is designed mobile first and also works on the desktop.
 - All data is stored in the browser. There is no backend.
 - Images are uploaded from the device and travel inside the export file.
 
@@ -299,8 +300,18 @@ flipcards/
 Accent stripping needs the browser's `String.normalize`. It is supplied to the common
 code through an `expect`/`actual` function.
 
-The layout works on a phone as well as a desktop. Revealing the answer plays a short CSS
-flip animation on the card.
+The layout is mobile first: the base styles target a phone-width screen in portrait, and
+`min-width` media queries widen the layout for tablets and desktops. Concretely:
+
+- A single-column layout by default; the stack list and the editor's front/back pair go
+  side by side only on wider screens.
+- Buttons and other touch targets are at least 44 px high, and the play screen keeps the
+  answer input and the "Knew it" / "Didn't know" buttons reachable without scrolling.
+- Nothing depends on hover. Everything works with touch, and with keyboard on desktop.
+- `index.html` sets the viewport meta tag, and no screen scrolls horizontally at 320 px
+  width.
+
+Revealing the answer plays a short CSS flip animation on the card.
 
 ## Testing
 
@@ -313,7 +324,7 @@ Everything in `commonMain` is developed test-first.
 | Play logic | commonTest | queue order with a fixed seed, missed cards returning, first-attempt score, hints in all three modes, answer comparison |
 | Transfer | commonTest | export then import yields an equal stack with new ids, each validation rule rejects what it should, name deduplication, incomplete cards left out |
 | `IndexedDbStorage` | jsTest, headless Chrome | save, load and delete of stacks and images, cascade delete, all-or-nothing import |
-| Views | manual | a short checklist in the README |
+| Views | manual | a short checklist in the README, run at phone width (320 px and 390 px) and at desktop width |
 
 ## Deployment
 

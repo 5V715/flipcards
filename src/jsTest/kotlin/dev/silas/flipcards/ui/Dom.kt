@@ -43,10 +43,21 @@ class Mounted(val root: HTMLElement, val dispatched: MutableList<Action>) {
     }
 }
 
-fun mount(state: AppState): Mounted {
+/**
+ * An empty element attached to the document, so that labels, focus and getElementById behave as in the app.
+ * Roots of earlier tests are removed first: all tests share one page, and their leftovers would
+ * otherwise answer lookups by id.
+ */
+fun freshRoot(): HTMLElement {
+    document.querySelectorAll(".test-root").asList().forEach { (it as Element).remove() }
     val root = document.createElement("div") as HTMLElement
-    // Attached to the document so that labels, focus and getElementById behave as in the app.
+    root.className = "test-root"
     document.body!!.appendChild(root)
+    return root
+}
+
+fun mount(state: AppState): Mounted {
+    val root = freshRoot()
     val dispatched = mutableListOf<Action>()
     render(root, state, { dispatched += it }, MainScope())
     return Mounted(root, dispatched)

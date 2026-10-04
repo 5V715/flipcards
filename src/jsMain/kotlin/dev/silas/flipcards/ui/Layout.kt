@@ -36,7 +36,7 @@ fun render(root: HTMLElement, state: AppState, dispatch: Dispatch, scope: Corout
             when (val screen = state.screen) {
                 Screen.Loading -> p("loading") { +"Loading…" }
                 is Screen.StackList -> stackListView(screen, dispatch, scope)
-                is Screen.Editor -> p { +"Editor" }
+                is Screen.Editor -> editorView(screen, dispatch, scope)
                 is Screen.Play -> p { +"Play" }
                 is Screen.NotFound -> notFound(screen.message)
             }

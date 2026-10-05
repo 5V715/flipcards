@@ -347,6 +347,44 @@ fieldset.side {
     flex-direction: column;
 }
 
+/* The levels sit under "Hinted", indented like its text, as one row of three choices. */
+.hint-levels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 8px 32px;
+}
+
+.hint-level {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+/* The radio itself is hidden; the chosen level is filled in and the focus shows on the label. */
+.hint-level input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.hint-level:has(input:checked) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+    font-weight: 600;
+}
+
+.hint-level:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
 .flipcard {
     display: flex;
     align-items: center;

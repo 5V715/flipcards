@@ -4,6 +4,7 @@ import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
+import dev.silas.flipcards.play.HintLevel
 import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.play.SessionResult
 import dev.silas.flipcards.play.Slot
@@ -15,6 +16,7 @@ import dev.silas.flipcards.state.AnswerTyped
 import dev.silas.flipcards.state.AppState
 import dev.silas.flipcards.state.CardCountChosen
 import dev.silas.flipcards.state.CardGraded
+import dev.silas.flipcards.state.HintLevelChosen
 import dev.silas.flipcards.state.HintModeChosen
 import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayPhase
@@ -99,6 +101,21 @@ class PlayViewTest {
         assertTrue(page.exists("a[href='#/']"))
         assertEquals("", (page.field("Also show on the front") as HTMLSelectElement).value)
         assertFalse(page.exists(".best"))
+    }
+
+    @Test fun hintLevelsShowOnlyForTheHintedMode() {
+        val hinted = play(PlayPhase.Setup("en", HintMode.HINTED, level = HintLevel.HARD))
+        assertEquals(listOf("Easy", "Medium", "Hard"), hinted.all(".hint-level").map { it.textContent?.trim() })
+        assertTrue((hinted.field("Hard") as HTMLInputElement).checked)
+        assertFalse((hinted.field("Medium") as HTMLInputElement).checked)
+        hinted.field("Easy").click()
+        assertEquals(listOf<Action>(HintLevelChosen(HintLevel.EASY)), hinted.dispatched)
+        assertFalse(play(PlayPhase.Setup("en", HintMode.LENGTH_ONLY)).exists(".hint-levels"))
+    }
+
+    @Test fun hintLevelsAreTranslated() {
+        val german = play(PlayPhase.Setup("de", HintMode.HINTED), uiLanguage = "de")
+        assertEquals(listOf("Leicht", "Mittel", "Schwer"), german.all(".hint-level").map { it.textContent?.trim() })
     }
 
     @Test fun setupShowsTheBestScore() =

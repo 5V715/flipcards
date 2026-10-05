@@ -4,8 +4,10 @@ import dev.silas.flipcards.model.Card
 import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.SideText
 import dev.silas.flipcards.model.Stack
+import dev.silas.flipcards.play.HintLevel
 import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.play.SessionResult
+import dev.silas.flipcards.play.blankCount
 import dev.silas.flipcards.play.pattern
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -240,5 +242,22 @@ class PlayUpdateTest {
         val s = playThrough(update(setup(), SessionStarted(1, listOf("b"))), knew = true)
         assertEquals(20, (s.phase as PlayPhase.Summary).result.score)
         assertEquals(emptyMap(), (s.screen as Screen.Play).bestScores)
+    }
+
+    @Test fun hintLevelIsChosenInSetupAndKeptForReplays() {
+        var s = update(setup(mode = HintMode.HINTED), HintLevelChosen(HintLevel.EASY))
+        assertEquals(HintLevel.EASY, (s.phase as PlayPhase.Setup).level)
+        s = update(s, SessionStarted(1, listOf("b"))) // Madrid: 6 letters, easy shows 3
+        val asking = s.phase as PlayPhase.Asking
+        assertEquals(HintLevel.EASY, asking.session.level)
+        assertEquals(3, asking.hint!!.blankCount)
+        s = update(update(s, AnswerSubmitted), CardGraded(true))
+        assertEquals(5, (s.phase as PlayPhase.Summary).result.score)
+        assertEquals(HintLevel.EASY, (update(s, SessionStarted(2)).phase as PlayPhase.Asking).session.level)
+    }
+
+    @Test fun hintLevelOnlyChangesInSetup() {
+        val asking = update(setup(mode = HintMode.HINTED), SessionStarted(1))
+        assertEquals(asking, update(asking, HintLevelChosen(HintLevel.HARD)))
     }
 }

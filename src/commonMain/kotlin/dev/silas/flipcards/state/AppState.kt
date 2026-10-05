@@ -3,6 +3,7 @@ package dev.silas.flipcards.state
 import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.model.StackSummary
+import dev.silas.flipcards.play.HintLevel
 import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.play.Session
 import dev.silas.flipcards.play.SessionResult
@@ -66,6 +67,7 @@ sealed interface PlayPhase {
         val mode: HintMode,
         val secondLanguage: String? = null,
         val cardCount: Int? = null,
+        val level: HintLevel = HintLevel.MEDIUM,
     ) : PlayPhase
 
     /**

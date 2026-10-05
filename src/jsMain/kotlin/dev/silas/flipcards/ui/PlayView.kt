@@ -4,6 +4,7 @@ import dev.silas.flipcards.i18n.Strings
 import dev.silas.flipcards.model.Side
 import dev.silas.flipcards.model.completeCards
 import dev.silas.flipcards.model.resolveText
+import dev.silas.flipcards.play.HintLevel
 import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.play.Session
 import dev.silas.flipcards.play.Slot
@@ -15,6 +16,7 @@ import dev.silas.flipcards.state.AnswerSubmitted
 import dev.silas.flipcards.state.AnswerTyped
 import dev.silas.flipcards.state.CardCountChosen
 import dev.silas.flipcards.state.CardGraded
+import dev.silas.flipcards.state.HintLevelChosen
 import dev.silas.flipcards.state.HintModeChosen
 import dev.silas.flipcards.state.PlayLanguageChosen
 import dev.silas.flipcards.state.PlayPhase
@@ -51,6 +53,7 @@ import kotlinx.html.legend
 import kotlinx.html.li
 import kotlinx.html.option
 import kotlinx.html.p
+import kotlinx.html.role
 import kotlinx.html.select
 import kotlinx.html.span
 import kotlinx.html.ul
@@ -230,6 +233,7 @@ private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, strin
                 }
                 +text
             }
+            if (mode == HintMode.HINTED && phase.mode == HintMode.HINTED) hintLevels(phase.level, strings, dispatch)
         }
     }
     if (completeCount > 1) {
@@ -264,6 +268,28 @@ private fun FlowContent.setup(screen: Screen.Play, phase: PlayPhase.Setup, strin
                 autofocus()
                 +strings.start
                 onClickFunction = { dispatch(SessionStarted(newSeed())) }
+            }
+        }
+    }
+}
+
+/** Easy, medium or hard: how many letters the hinted mode shows. Only offered while that mode is chosen. */
+private fun FlowContent.hintLevels(current: HintLevel, strings: Strings, dispatch: Dispatch) {
+    div("hint-levels") {
+        role = "radiogroup"
+        attributes["aria-label"] = strings.hintLevel
+        listOf(
+            HintLevel.EASY to strings.easy,
+            HintLevel.MEDIUM to strings.medium,
+            HintLevel.HARD to strings.hard,
+        ).forEach { (level, text) ->
+            label("hint-level") {
+                input(type = InputType.radio, name = "hint-level") {
+                    id = "hint-level-${level.name.lowercase()}"
+                    checked = level == current
+                    onChangeFunction = { dispatch(HintLevelChosen(level)) }
+                }
+                +text
             }
         }
     }
@@ -348,7 +374,7 @@ private fun FlowContent.summary(screen: Screen.Play, phase: PlayPhase.Summary, s
     fun Side.label(): String = resolveText(result.language, fallback) ?: strings.image
 
     h1 { +strings.known(result.known, result.total) }
-    p("score final") { +strings.finalScore(result.score, result.total * pointsPerCard(result.mode)) }
+    p("score final") { +strings.finalScore(result.score, result.total * pointsPerCard(result.mode, result.level)) }
     when {
         !result.countsForBest -> p("best") { +strings.missedOnlyDoesNotCount }
         result.score > (phase.previousBest ?: 0) -> p("best new") { +strings.newBest }

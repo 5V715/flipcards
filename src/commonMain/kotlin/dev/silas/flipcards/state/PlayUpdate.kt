@@ -63,6 +63,8 @@ internal fun updatePlay(state: AppState, action: PlayAction): AppState {
 
         is HintModeChosen -> if (phase is PlayPhase.Setup) to(phase.copy(mode = action.mode)) else state
 
+        is HintLevelChosen -> if (phase is PlayPhase.Setup) to(phase.copy(level = action.level)) else state
+
         is SecondLanguageChosen ->
             if (phase is PlayPhase.Setup && (action.language == null || action.language in stack.languages)) {
                 to(phase.copy(secondLanguage = action.language))
@@ -80,7 +82,9 @@ internal fun updatePlay(state: AppState, action: PlayAction): AppState {
         is SessionStarted -> {
             val setup = when (phase) {
                 is PlayPhase.Setup -> phase
-                is PlayPhase.Summary -> with(phase.result) { PlayPhase.Setup(language, mode, secondLanguage, cardCount) }
+                is PlayPhase.Summary -> with(phase.result) {
+                    PlayPhase.Setup(language, mode, secondLanguage, cardCount, level)
+                }
                 else -> return state
             }
             val cardIds = stack.completeCards.map { it.id }
@@ -92,6 +96,7 @@ internal fun updatePlay(state: AppState, action: PlayAction): AppState {
                 secondLanguage = setup.secondLanguage,
                 countsForBest = !replayingMissed,
                 cardCount = if (replayingMissed) null else setup.cardCount,
+                level = setup.level,
             )
             to(PlayPhase.Asking(session, hintFor(stack, session), typed = ""))
         }

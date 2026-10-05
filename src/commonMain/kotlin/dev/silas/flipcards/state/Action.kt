@@ -3,6 +3,7 @@ package dev.silas.flipcards.state
 import dev.silas.flipcards.model.Face
 import dev.silas.flipcards.model.Stack
 import dev.silas.flipcards.model.StackSummary
+import dev.silas.flipcards.play.HintLevel
 import dev.silas.flipcards.play.HintMode
 import dev.silas.flipcards.samples.Sample
 
@@ -85,6 +86,9 @@ sealed interface PlayAction : Action
 
 data class PlayLanguageChosen(val language: String) : PlayAction
 data class HintModeChosen(val mode: HintMode) : PlayAction
+
+/** How many letters the hinted mode shows. */
+data class HintLevelChosen(val level: HintLevel) : PlayAction
 
 /** The language also shown on the front, or null for none. */
 data class SecondLanguageChosen(val language: String?) : PlayAction

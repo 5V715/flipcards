@@ -27,6 +27,8 @@ data class Session(
     val countsForBest: Boolean = true,
     /** How many cards were asked for; null for all. "Play again" asks for as many. */
     val cardCount: Int? = null,
+    /** How many letters [HintMode.HINTED] shows. */
+    val level: HintLevel = HintLevel.MEDIUM,
 )
 
 data class SessionResult(
@@ -38,13 +40,18 @@ data class SessionResult(
     val score: Int = 0,
     val countsForBest: Boolean = true,
     val cardCount: Int? = null,
+    val level: HintLevel = HintLevel.MEDIUM,
 ) {
     val known: Int get() = total - missed.size
 }
 
 /** Points for a known card. Fewer hints, more points. */
-fun pointsPerCard(mode: HintMode): Int = when (mode) {
-    HintMode.HINTED -> 10
+fun pointsPerCard(mode: HintMode, level: HintLevel = HintLevel.MEDIUM): Int = when (mode) {
+    HintMode.HINTED -> when (level) {
+        HintLevel.EASY -> 5
+        HintLevel.MEDIUM -> 10
+        HintLevel.HARD -> 15
+    }
     HintMode.LENGTH_ONLY -> 20
     HintMode.NONE -> 30
 }
@@ -58,11 +65,12 @@ fun startSession(
     countsForBest: Boolean = true,
     /** Plays only this many of the cards, picked at random; null for all. */
     cardCount: Int? = null,
+    level: HintLevel = HintLevel.MEDIUM,
 ): Session {
     val queue = cardIds.shuffled(Random(seed)).take(cardCount ?: cardIds.size)
     return Session(
         language, mode, queue, queue.size, emptyList(), seed,
-        secondLanguage = secondLanguage, countsForBest = countsForBest, cardCount = cardCount,
+        secondLanguage = secondLanguage, countsForBest = countsForBest, cardCount = cardCount, level = level,
     )
 }
 
@@ -70,7 +78,7 @@ fun Session.grade(knew: Boolean): Session {
     val current = queue.first()
     val rest = queue.drop(1)
     return if (knew) {
-        copy(queue = rest, step = step + 1, score = score + pointsPerCard(mode))
+        copy(queue = rest, step = step + 1, score = score + pointsPerCard(mode, level))
     } else {
         copy(queue = rest, missed = missed + current, step = step + 1)
     }
@@ -79,12 +87,12 @@ fun Session.grade(knew: Boolean): Session {
 val Session.isFinished: Boolean get() = queue.isEmpty()
 
 fun Session.result(): SessionResult =
-    SessionResult(language, mode, total, missed, secondLanguage, score, countsForBest, cardCount)
+    SessionResult(language, mode, total, missed, secondLanguage, score, countsForBest, cardCount, level)
 
 fun Session.currentCard(stack: Stack): Card = stack.cards.first { it.id == queue.first() }
 
 /** The answer slots for the current card's back, in the session's language. */
 fun hintFor(stack: Stack, session: Session): List<Slot>? {
     val answer = session.currentCard(stack).back.resolveText(session.language, stack.languages.first())
-    return hintSlots(answer, session.mode, Random(session.seed + session.step))
+    return hintSlots(answer, session.mode, Random(session.seed + session.step), session.level)
 }

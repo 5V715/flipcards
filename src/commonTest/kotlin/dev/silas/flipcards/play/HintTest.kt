@@ -57,4 +57,25 @@ class HintTest {
         assertEquals("ab", slots.acceptTyped("abc"))
         assertEquals("ó1", slots.acceptTyped("ó-1"))
     }
+
+    private fun shown(answer: String, level: HintLevel) =
+        hintSlots(answer, HintMode.HINTED, Random(1), level)!!.count { it is Slot.Fixed && it.char.isLetter() }
+
+    @Test fun levelsShowMoreOrFewerLetters() {
+        val answer = "Copenhagen" // 10 letters
+        assertEquals(5, shown(answer, HintLevel.EASY))
+        assertEquals(3, shown(answer, HintLevel.MEDIUM))
+        assertEquals(2, shown(answer, HintLevel.HARD))
+    }
+
+    @Test fun everyLevelShowsAtLeastOneLetter() {
+        assertEquals(1, shown("Rom", HintLevel.HARD))
+        assertEquals(1, shown("Oslo", HintLevel.HARD))
+        assertEquals(2, shown("Oslo", HintLevel.EASY))
+    }
+
+    @Test fun levelsDoNotChangeTheOtherModes() {
+        assertEquals("_ _ _ _", hint("Oslo", HintMode.LENGTH_ONLY, Random(1), HintLevel.EASY))
+        assertEquals(null, hint("Oslo", HintMode.NONE, Random(1), HintLevel.EASY))
+    }
 }

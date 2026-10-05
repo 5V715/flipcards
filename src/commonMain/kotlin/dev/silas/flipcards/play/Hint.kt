@@ -5,6 +5,9 @@ import kotlin.random.Random
 
 enum class HintMode { HINTED, LENGTH_ONLY, NONE }
 
+/** How many letters [HintMode.HINTED] shows: one in [divisor] of the letters, but at least one. */
+enum class HintLevel(val divisor: Int) { EASY(2), MEDIUM(3), HARD(5) }
+
 /** One character of the answer as the player sees it while typing. */
 sealed interface Slot {
     /** A letter or digit the player has to type. */
@@ -16,14 +19,15 @@ sealed interface Slot {
 
 /**
  * The slots for [answer]. Letters and digits are blanks, spaces and punctuation stay;
- * in [HintMode.HINTED] a third of the letters are revealed. Returns null when there is nothing to hint at.
+ * in [HintMode.HINTED] some letters are revealed, how many depends on [level]. Returns null when
+ * there is nothing to hint at.
  */
-fun hintSlots(answer: String?, mode: HintMode, random: Random): List<Slot>? {
+fun hintSlots(answer: String?, mode: HintMode, random: Random, level: HintLevel = HintLevel.MEDIUM): List<Slot>? {
     if (mode == HintMode.NONE || answer.isNullOrBlank()) return null
     val hidden = answer.indices.filter { answer[it].isLetterOrDigit() }
     val revealCount = when {
         mode == HintMode.LENGTH_ONLY || hidden.size <= 1 -> 0
-        else -> max(1, hidden.size / 3)
+        else -> max(1, hidden.size / level.divisor)
     }
     val revealed = hidden.shuffled(random).take(revealCount).toSet()
     return answer.mapIndexed { i, c -> if (i in hidden && i !in revealed) Slot.Blank else Slot.Fixed(c) }
@@ -34,7 +38,8 @@ fun List<Slot>.pattern(): String =
     map { if (it is Slot.Fixed) it.char else '_' }.joinToString(" ")
 
 /** A pattern such as `_ i _ _ _ a` for [answer], or null when there is nothing to hint at. */
-fun hint(answer: String?, mode: HintMode, random: Random): String? = hintSlots(answer, mode, random)?.pattern()
+fun hint(answer: String?, mode: HintMode, random: Random, level: HintLevel = HintLevel.MEDIUM): String? =
+    hintSlots(answer, mode, random, level)?.pattern()
 
 val List<Slot>.blankCount: Int get() = count { it == Slot.Blank }
 

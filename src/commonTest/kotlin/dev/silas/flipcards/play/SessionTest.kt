@@ -73,6 +73,12 @@ class SessionTest {
         assertEquals(30, s.result().score) // 3 cards known, 10 points each with hints
     }
 
+    @Test fun harderLevelsGiveMorePoints() {
+        fun session(level: HintLevel) = startSession(listOf("a"), "en", HintMode.HINTED, 1, level = level)
+        assertEquals(listOf(5, 10, 15), HintLevel.entries.map { session(it).grade(true).score })
+        assertEquals(HintLevel.HARD, session(HintLevel.HARD).result().level)
+    }
+
     @Test fun fewerHintsGiveMorePoints() {
         assertEquals(20, startSession(listOf("a"), "en", HintMode.LENGTH_ONLY, 1).grade(true).score)
         assertEquals(30, startSession(listOf("a"), "en", HintMode.NONE, 1).grade(true).score)
